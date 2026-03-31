@@ -147,8 +147,8 @@ Install_Multiplephp()
 Install_MPHP5.2()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
-    Download_Files ${Download_Mirror}/web/phpfpm/php-5.2.17-fpm-0.5.14.diff.gz php-5.2.17-fpm-0.5.14.diff.gz
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
+    echo "PHP 5.2 FPM patch download skipped (PHP 5.x deprecated)."
 
     lnmp stop
 
@@ -184,7 +184,7 @@ Install_MPHP5.2()
     sed -i 's#output_buffering = Off#output_buffering = On#' ${MPHP_Path}/etc/php.ini
     sed -i 's/post_max_size = 8M/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag = Off/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/; cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/; cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
@@ -193,7 +193,7 @@ Install_MPHP5.2()
 
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
-        Download_Files ${Download_Mirror}/web/zend/ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendOptimizer is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendOptimizer-3.3.9-linux-glibc23-${ARCH}/data/5_2_x_comp/ZendOptimizer.so /usr/local/zend/ZendOptimizer5.2.so
@@ -239,7 +239,7 @@ Install_MPHP5.3()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}..."
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     patch -p1 < ${cur_dir}/src/patch/php-5.3-multipart-form-data.patch
@@ -255,7 +255,7 @@ Install_MPHP5.3()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -266,7 +266,7 @@ Install_MPHP5.3()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.3..."
-        Download_Files ${Download_Mirror}/web/zend/ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendGuardLoader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}/php-5.3.x/ZendGuardLoader.so /usr/local/zend/ZendGuardLoader5.3.so
@@ -338,7 +338,7 @@ Install_MPHP5.4()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}..."
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     ./configure --prefix=${MPHP_Path} --with-config-file-path=${MPHP_Path}/etc --with-config-file-scan-dir=${MPHP_Path}/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -353,7 +353,7 @@ Install_MPHP5.4()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -362,7 +362,7 @@ Install_MPHP5.4()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.4..."
-        Download_Files ${Download_Mirror}/web/zend/ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendGuardLoader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}/php-5.4.x/ZendGuardLoader.so /usr/local/zend/ZendGuardLoader5.4.so
@@ -434,7 +434,7 @@ Install_MPHP5.5()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}..."
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     if [ "${ARCH}" = "aarch64" ]; then
@@ -452,7 +452,7 @@ Install_MPHP5.5()
     echo "Modify php.ini..."
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -461,7 +461,7 @@ Install_MPHP5.5()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.5..."
-        Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.5-linux-${ARCH}.tar.gz zend-loader-php5.5-linux-${ARCH}.tar.gz
+        Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd zend-loader-php5.5-linux-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp zend-loader-php5.5-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/ZendGuardLoader5.5.so
@@ -533,7 +533,7 @@ Install_MPHP5.6()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     if [ "${ARCH}" = "aarch64" ]; then
@@ -554,7 +554,7 @@ Install_MPHP5.6()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -563,7 +563,7 @@ Install_MPHP5.6()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.6..."
-        Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.6-linux-${ARCH}.tar.gz zend-loader-php5.6-linux-${ARCH}.tar.gz
+        Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd zend-loader-php5.6-linux-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp zend-loader-php5.6-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/ZendGuardLoader5.6.so
@@ -635,7 +635,7 @@ Install_MPHP7.0()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     if command -v pkg-config >/dev/null 2>&1 && pkg-config --modversion icu-i18n | grep -Eqi '^6[1-9]|[7-9][0-9]'; then
@@ -653,7 +653,7 @@ Install_MPHP7.0()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -719,7 +719,7 @@ Install_MPHP7.1()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
@@ -736,7 +736,7 @@ Install_MPHP7.1()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -802,7 +802,7 @@ Install_MPHP7.2()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
@@ -819,7 +819,7 @@ Install_MPHP7.2()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -885,7 +885,7 @@ Install_MPHP7.3()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
@@ -902,7 +902,7 @@ Install_MPHP7.3()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -968,7 +968,7 @@ Install_MPHP7.4()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
@@ -985,7 +985,7 @@ Install_MPHP7.4()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -1051,7 +1051,7 @@ Install_MPHP8.0()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
@@ -1068,7 +1068,7 @@ Install_MPHP8.0()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -1134,7 +1134,7 @@ Install_MPHP8.1()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
@@ -1150,7 +1150,7 @@ Install_MPHP8.1()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -1216,7 +1216,7 @@ Install_MPHP8.2()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
@@ -1232,7 +1232,7 @@ Install_MPHP8.2()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini
@@ -1298,7 +1298,7 @@ Install_MPHP8.3()
     lnmp stop
 
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
@@ -1314,7 +1314,7 @@ Install_MPHP8.3()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${MPHP_Path}/etc/php.ini

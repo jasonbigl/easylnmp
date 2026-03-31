@@ -2,9 +2,9 @@
 
 Set_Timezone()
 {
-    Echo_Blue "Setting timezone..."
+    Echo_Blue "Setting timezone to ${TimeZone}..."
     rm -rf /etc/localtime
-    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    ln -sf "/usr/share/zoneinfo/${TimeZone}" /etc/localtime
 }
 
 CentOS_InstallNTP()
@@ -34,11 +34,21 @@ CentOS_InstallNTP()
 Deb_InstallNTP()
 {
     if [ "${CheckMirror}" != "n" ]; then
-        apt-get update -y
-        [[ $? -ne 0 ]] && apt-get update --allow-releaseinfo-change -y
-        Echo_Blue "[+] Installing ntp..."
-        apt-get install -y ntpdate
-        ntpdate -u pool.ntp.org
+        if timedatectl status 2>/dev/null | grep -qi "NTP.*active\|NTP.*yes\|synchronized: yes"; then
+            Echo_Blue "[+] Time sync already active (systemd-timesyncd/chrony), skipping ntpdate install."
+        elif command -v chronyd >/dev/null 2>&1 && systemctl is-active chronyd >/dev/null 2>&1; then
+            Echo_Blue "[+] chrony is running, skipping ntpdate install."
+        else
+            Echo_Blue "[+] Enabling NTP sync via timedatectl..."
+            timedatectl set-ntp true 2>/dev/null || {
+                apt-get update -y
+                [[ $? -ne 0 ]] && apt-get update --allow-releaseinfo-change -y
+                Echo_Blue "[+] timedatectl failed, installing chrony..."
+                apt-get install -y chrony
+                systemctl enable chrony
+                systemctl start chrony
+            }
+        fi
     fi
     date
     start_time=$(date +%s)
@@ -72,29 +82,27 @@ Deb_RemoveAMP()
     Echo_Blue "[-] apt-get remove packages..."
     apt-get update -y
     [[ $? -ne 0 ]] && apt-get update --allow-releaseinfo-change -y
-    for removepackages in apache2 apache2-doc apache2-utils apache2.2-common apache2.2-bin apache2-mpm-prefork apache2-doc apache2-mpm-worker php5 php5-common php5-cgi php5-cli php5-mysql php5-curl php5-gd;
+    for removepackages in apache2 apache2-doc apache2-utils apache2-bin apache2.2-common apache2.2-bin apache2-mpm-prefork apache2-mpm-worker;
     do apt-get purge -y $removepackages; done
     if [[ "${DBSelect}" != "0" ]]; then
-        if echo "${Ubuntu_Version}" | grep -Eqi "^2[0-7]\."; then
-            dpkg -l |grep mysql
-            dpkg --force-all -P mysql-server
+        if echo "${Ubuntu_Version}" | grep -Eqi "^2[0-7]\." || [[ "${Debian_Version}" -ge 11 ]]; then
+            dpkg -l | grep -E 'mysql|mariadb'
+            dpkg --force-all -P mysql-server mysql-client mysql-common
             dpkg --force-all -P mariadb-client mariadb-server mariadb-common libmariadbd-dev
             [[ -d "/etc/mysql" ]] && rm -rf /etc/mysql
-            for removepackages in mysql-server mariadb-server;
+            for removepackages in mysql-server mysql-client mariadb-server mariadb-client;
             do apt-get purge -y $removepackages; done
         else
-            dpkg -l |grep mysql
-            dpkg --force-all -P mysql-server mysql-common libmysqlclient15off libmysqlclient15-dev libmysqlclient18 libmysqlclient18-dev libmysqlclient20 libmysqlclient-dev libmysqlclient21
+            dpkg -l | grep -E 'mysql|mariadb'
+            dpkg --force-all -P mysql-server mysql-common libmysqlclient-dev libmysqlclient21
             dpkg --force-all -P mariadb-client mariadb-server mariadb-common libmariadbd-dev
-            for removepackages in mysql-client mysql-server mysql-common mysql-server-core-5.5 mysql-client-5.5 mariadb-client mariadb-server mariadb-common;
+            for removepackages in mysql-client mysql-server mysql-common mariadb-client mariadb-server mariadb-common;
             do apt-get purge -y $removepackages; done
         fi
     fi
-    killall apache2
-    dpkg -l |grep apache
-    dpkg -P apache2 apache2-doc apache2-mpm-prefork apache2-utils apache2.2-common
-    dpkg -l |grep php
-    dpkg -P php5 php5-common php5-cli php5-cgi php5-mysql php5-curl php5-gd
+    killall apache2 2>/dev/null
+    dpkg -l | grep apache
+    dpkg -P apache2 apache2-doc apache2-utils apache2-bin 2>/dev/null
     apt-get autoremove -y && apt-get clean
 }
 
@@ -121,13 +129,10 @@ Check_Hosts()
         echo "127.0.0.1 localhost.localdomain localhost" >> /etc/hosts
     fi
     if [ "${CheckMirror}" != "n" ]; then
-        pingresult=`ping -c1 lnmp.org 2>&1`
+        pingresult=$(ping -c1 lnmp.org 2>&1)
         echo "${pingresult}"
         if echo "${pingresult}" | grep -q "unknown host"; then
-            echo "DNS...fail"
-            echo "Backing up and writing nameserver to /etc/resolv.conf ..."
-            cp -a /etc/resolv.conf /etc/resolv.conf.bak.$(date +%Y%m%d%H%M%S) 2>/dev/null
-            echo -e "nameserver 208.67.220.220\nnameserver 114.114.114.114" > /etc/resolv.conf
+            echo "DNS...fail (using system default DNS, not modifying resolv.conf)"
         else
             echo "DNS...ok"
         fi
@@ -455,47 +460,48 @@ Deb_Dependent()
     apt-get -fy install
     export DEBIAN_FRONTEND=noninteractive
     apt-get --no-install-recommends install -y build-essential gcc g++ make
-    for packages in debian-keyring debian-archive-keyring build-essential gcc g++ make cmake autoconf automake re2c wget cron bzip2 libzip-dev libc6-dev bison file rcconf flex bison m4 gawk less cpp binutils diffutils unzip tar bzip2 libbz2-dev libncurses5 libncurses5-dev libtool libevent-dev openssl libssl-dev zlibc libsasl2-dev libltdl3-dev libltdl-dev zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libglib2.0-0 libglib2.0-dev libpng3 libjpeg-dev libpng-dev libpng12-0 libpng12-dev libkrb5-dev curl libcurl3-gnutls libcurl4-gnutls-dev libcurl4-openssl-dev libpcre3-dev libpq-dev libpq5 gettext libpng12-dev libxml2-dev libcap-dev ca-certificates libc-client2007e-dev psmisc patch git libc-ares-dev libicu-dev e2fsprogs libxslt1.1 libxslt1-dev libc-client-dev xz-utils libexpat1-dev libaio-dev libtirpc-dev libsqlite3-dev libonig-dev lsof pkg-config libtinfo-dev libnuma-dev libwebp-dev gnutls-dev iproute2 xz-utils gzip;
-    do apt-get --no-install-recommends install -y $packages; done
+
+    local deb_packages="debian-keyring debian-archive-keyring build-essential gcc g++ make cmake autoconf automake re2c wget cron bzip2 libzip-dev libc6-dev bison file flex m4 gawk less cpp binutils diffutils unzip tar libbz2-dev libtool libevent-dev openssl libssl-dev libsasl2-dev libltdl-dev zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libglib2.0-0 libglib2.0-dev libjpeg-dev libpng-dev libkrb5-dev curl libcurl4-gnutls-dev libcurl4-openssl-dev libpcre3-dev libpq-dev libpq5 gettext libxml2-dev libcap-dev ca-certificates psmisc patch git libc-ares-dev libicu-dev e2fsprogs libxslt1.1 libxslt1-dev libc-client-dev xz-utils libexpat1-dev libaio-dev libtirpc-dev libsqlite3-dev libonig-dev lsof pkg-config libnuma-dev libwebp-dev gnutls-dev iproute2 gzip"
+
+    if [[ "${Debian_Version}" -ge 11 ]] 2>/dev/null || echo "${Ubuntu_Version}" | grep -Eqi "^2[0-9]\."; then
+        deb_packages="${deb_packages} libncurses-dev libtinfo-dev"
+    else
+        deb_packages="${deb_packages} libncurses5 libncurses5-dev libtinfo-dev"
+    fi
+
+    for packages in ${deb_packages}; do
+        apt-get --no-install-recommends install -y $packages
+    done
 }
 
 Check_Download()
 {
     Echo_Blue "[+] Downloading files..."
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/libiconv/${Libiconv_Ver}.tar.gz ${Libiconv_Ver}.tar.gz
-    Download_Files ${Download_Mirror}/web/libmcrypt/${LibMcrypt_Ver}.tar.gz ${LibMcrypt_Ver}.tar.gz
-    Download_Files ${Download_Mirror}/web/mcrypt/${Mcypt_Ver}.tar.gz ${Mcypt_Ver}.tar.gz
-    Download_Files ${Download_Mirror}/web/mhash/${Mhash_Ver}.tar.bz2 ${Mhash_Ver}.tar.bz2
+    Download_Files ${Libiconv_URL} ${Libiconv_Ver}.tar.gz
+    Download_Files ${LibMcrypt_URL} ${LibMcrypt_Ver}.tar.gz
+    Download_Files ${Mcrypt_URL} ${Mcypt_Ver}.tar.gz
+    Download_Files ${Mhash_URL} ${Mhash_Ver}.tar.bz2
     if [ "${SelectMalloc}" = "2" ]; then
-        Download_Files ${Download_Mirror}/lib/jemalloc/${Jemalloc_Ver}.tar.bz2 ${Jemalloc_Ver}.tar.bz2
+        Download_Files ${Jemalloc_URL} ${Jemalloc_Ver}.tar.bz2
     elif [ "${SelectMalloc}" = "3" ]; then
-        Download_Files ${Download_Mirror}/lib/tcmalloc/${TCMalloc_Ver}.tar.gz ${TCMalloc_Ver}.tar.gz
-        Download_Files ${Download_Mirror}/lib/libunwind/${Libunwind_Ver}.tar.gz ${Libunwind_Ver}.tar.gz
+        Download_Files ${TCMalloc_URL} ${TCMalloc_Ver}.tar.gz
+        Download_Files ${Libunwind_URL} ${Libunwind_Ver}.tar.gz
     fi
     if [ "${Stack}" != "lamp" ]; then
-        Download_Files ${Download_Mirror}/web/nginx/${Nginx_Ver}.tar.gz ${Nginx_Ver}.tar.gz
+        Download_Files ${Nginx_URL} ${Nginx_Ver}.tar.gz
     fi
     if [[ "${DBSelect}" =~ ^(1|2|3|4|5|11)$ ]]; then
         if [[ "${Bin}" = "y" && "${DBSelect}" =~ ^[2-4]$ ]]; then
             Mysql_Ver_Short=$(echo ${Mysql_Ver} | sed 's/mysql-//' | cut -d. -f1-2)
             Download_Files https://cdn.mysql.com/Downloads/MySQL-${Mysql_Ver_Short}/${Mysql_Ver}-linux-glibc2.12-${DB_ARCH}.tar.gz ${Mysql_Ver}-linux-glibc2.12-${DB_ARCH}.tar.gz
-            if [ $? -ne 0 ]; then
-                Download_Files https://cdn.mysql.com/archives/mysql-${Mysql_Ver_Short}/${Mysql_Ver}-linux-glibc2.12-${DB_ARCH}.tar.gz ${Mysql_Ver}-linux-glibc2.12-${DB_ARCH}.tar.gz
-            fi
         elif [[ "${Bin}" = "y" && "${DBSelect}" = "5" ]]; then
             [[ "${DB_ARCH}" = "aarch64" ]] && mysql8_glibc_ver="2.17" || mysql8_glibc_ver="2.12"
             Download_Files https://cdn.mysql.com/Downloads/MySQL-8.0/${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz ${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz
-            if [ $? -ne 0 ]; then
-                Download_Files https://cdn.mysql.com/archives/mysql-8.0/${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz ${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz
-            fi
         elif [[ "${Bin}" = "y" && "${DBSelect}" = "11" ]]; then
             Download_Files https://cdn.mysql.com/Downloads/MySQL-8.4/${Mysql_Ver}-linux-glibc2.17-${DB_ARCH}.tar.xz ${Mysql_Ver}-linux-glibc2.17-${DB_ARCH}.tar.xz
-            if [ $? -ne 0 ]; then
-                Download_Files https://cdn.mysql.com/archives/mysql-8.4/${Mysql_Ver}-linux-glibc2.17-${DB_ARCH}.tar.xz ${Mysql_Ver}-linux-glibc2.17-${DB_ARCH}.tar.xz
-            fi
         else
-            Download_Files ${Download_Mirror}/datebase/mysql/${Mysql_Ver}.tar.gz ${Mysql_Ver}.tar.gz
+            Download_Files ${Mysql_Src_URL} ${Mysql_Ver}.tar.gz
         fi
     elif [[ "${DBSelect}" =~ ^(6|7|8|9|10)$ ]]; then
         Mariadb_Version=$(echo ${Mariadb_Ver} | cut -d- -f2)
@@ -505,16 +511,12 @@ Check_Download()
             Download_Files https://downloads.mariadb.org/rest-api/mariadb/${Mariadb_Version}/${Mariadb_Ver}.tar.gz ${Mariadb_Ver}.tar.gz
         fi
     fi
-    Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2
-    if [ ${PHPSelect} = "1" ]; then
-        Download_Files ${Download_Mirror}/web/phpfpm/${Php_Ver}-fpm-0.5.14.diff.gz ${Php_Ver}-fpm-0.5.14.diff.gz
-    fi
-    Download_Files ${Download_Mirror}/datebase/phpmyadmin/${PhpMyAdmin_Ver}.tar.xz ${PhpMyAdmin_Ver}.tar.xz
-    Download_Files ${Download_Mirror}/prober/p.tar.gz p.tar.gz
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
+    Download_Files ${PhpMyAdmin_URL} ${PhpMyAdmin_Ver}.tar.xz
     if [ "${Stack}" != "lnmp" ]; then
-        Download_Files ${Download_Mirror}/web/apache/${Apache_Ver}.tar.bz2 ${Apache_Ver}.tar.bz2
-        Download_Files ${Download_Mirror}/web/apache/${APR_Ver}.tar.bz2 ${APR_Ver}.tar.bz2
-        Download_Files ${Download_Mirror}/web/apache/${APR_Util_Ver}.tar.bz2 ${APR_Util_Ver}.tar.bz2
+        Download_Files ${Apache_URL} ${Apache_Ver}.tar.bz2
+        Download_Files ${APR_URL} ${APR_Ver}.tar.bz2
+        Download_Files ${APR_Util_URL} ${APR_Util_Ver}.tar.bz2
     fi
 }
 
@@ -540,7 +542,7 @@ Install_Autoconf()
 {
     Echo_Blue "[+] Installing ${Autoconf_Ver}"
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/lib/autoconf/${Autoconf_Ver}.tar.gz ${Autoconf_Ver}.tar.gz
+    Download_Files ${Autoconf_URL} ${Autoconf_Ver}.tar.gz
     Tar_Cd ${Autoconf_Ver}.tar.gz ${Autoconf_Ver}
     ./configure --prefix=/usr/local/autoconf-2.13
     Make_Install
@@ -606,12 +608,12 @@ Install_Mhash()
 Install_Freetype()
 {
     if echo "${Ubuntu_Version}" | grep -Eqi "^1[89]\.|2[0-9]\." || echo "${Mint_Version}" | grep -Eqi "^19|2[0-9]" || echo "${Deepin_Version}" | grep -Eqi "^15\.[7-9]|15.1[0-9]|1[6-9]|2[0-9]" || echo "${Debian_Version}" | grep -Eqi "^9|1[0-9]" || echo "${Raspbian_Version}" | grep -Eqi "^9|1[0-9]" || echo "${Kali_Version}" | grep -Eqi "^202[0-9]" || echo "${UOS_Version}" | grep -Eqi "^2[0-9]" || echo "${CentOS_Version}" | grep -Eqi "^8|9" || echo "${RHEL_Version}" | grep -Eqi "^8|9" || echo "${Oracle_Version}" | grep -Eqi "^8|9" || echo "${Fedora_Version}" | grep -Eqi "^3[0-9]|29" || echo "${Rocky_Version}" | grep -Eqi "^8|9" || echo "${Alma_Version}" | grep -Eqi "^8|9" || echo "${openEuler_Version}" | grep -Eqi "^2[0-9]" || echo "${Anolis_Version}" | grep -Eqi "^8|9" || echo "${Kylin_Version}" | grep -Eqi "^V1[0-9]" || echo "${Amazon_Version}" | grep -Eqi "^202[3-9]" || echo "${OpenCloudOS_Version}" | grep -Eqi "^8|9|23" || echo "${HCE_Version}" | grep -Eqi "^2\.[0-9]"; then
-        Download_Files ${Download_Mirror}/lib/freetype/${Freetype_New_Ver}.tar.xz ${Freetype_New_Ver}.tar.xz
+        Download_Files ${Freetype_New_URL} ${Freetype_New_Ver}.tar.xz
         Echo_Blue "[+] Installing ${Freetype_New_Ver}"
         Tar_Cd ${Freetype_New_Ver}.tar.xz ${Freetype_New_Ver}
         ./configure --prefix=/usr/local/freetype --enable-freetype-config
     else
-        Download_Files ${Download_Mirror}/lib/freetype/${Freetype_Ver}.tar.bz2 ${Freetype_Ver}.tar.bz2
+        Download_Files ${Freetype_URL} ${Freetype_Ver}.tar.bz2
         Echo_Blue "[+] Installing ${Freetype_Ver}"
         Tar_Cd ${Freetype_Ver}.tar.bz2 ${Freetype_Ver}
         ./configure --prefix=/usr/local/freetype
@@ -633,7 +635,7 @@ Install_Curl()
     if [[ ! -s /usr/local/curl/bin/curl || ! -s /usr/local/curl/lib/libcurl.so || ! -s /usr/local/curl/include/curl/curl.h ]]; then
         Echo_Blue "[+] Installing ${Curl_Ver}"
         cd ${cur_dir}/src
-        Download_Files ${Download_Mirror}/lib/curl/${Curl_Ver}.tar.bz2 ${Curl_Ver}.tar.bz2
+        Download_Files ${Curl_URL} ${Curl_Ver}.tar.bz2
         Tar_Cd ${Curl_Ver}.tar.bz2 ${Curl_Ver}
         if [ -s /usr/local/openssl/bin/openssl ] || /usr/local/openssl/bin/openssl version | grep -Eqi 'OpenSSL 1.0.2'; then
             ./configure --prefix=/usr/local/curl --enable-ares --without-nss --with-zlib --with-ssl=/usr/local/openssl
@@ -653,7 +655,7 @@ Install_Pcre()
     if ! command -v pcre-config >/dev/null 2>&1 || pcre-config --version | grep -vEqi '^8.'; then
         Echo_Blue "[+] Installing ${Pcre_Ver}"
         cd ${cur_dir}/src
-        Download_Files ${Download_Mirror}/web/pcre/${Pcre_Ver}.tar.bz2 ${Pcre_Ver}.tar.bz2
+        Download_Files ${Pcre_URL} ${Pcre_Ver}.tar.bz2
         Tar_Cd ${Pcre_Ver}.tar.bz2
         Nginx_With_Pcre="--with-pcre=${cur_dir}/src/${Pcre_Ver} --with-pcre-jit"
     fi
@@ -700,7 +702,7 @@ Install_Icu4c()
     if command -v icu-config >/dev/null 2>&1 && icu-config --version | grep -Eq "^3."; then
         Echo_Blue "[+] Installing ${Libicu4c_Ver}"
         cd ${cur_dir}/src
-        Download_Files ${Download_Mirror}/lib/icu4c/${Libicu4c_Ver}-src.tgz ${Libicu4c_Ver}-src.tgz
+        Download_Files ${Libicu4c_URL} ${Libicu4c_Ver}-src.tgz
         Tar_Cd ${Libicu4c_Ver}-src.tgz icu/source
         ./configure --prefix=/usr
         if [ ! -s /usr/include/xlocale.h ]; then
@@ -717,7 +719,7 @@ Install_Icu60()
     if [ ! -s /usr/local/icu/bin/icu-config ]; then
         Echo_Blue "[+] Installing icu4c-60_3..."
         cd ${cur_dir}/src
-        Download_Files ${Download_Mirror}/lib/icu4c/icu4c-60_3-src.tgz icu4c-60_3-src.tgz
+        Download_Files ${Libicu4c_60_URL} icu4c-60_3-src.tgz
         Tar_Cd icu4c-60_3-src.tgz icu/source
         ./configure --prefix=/usr/local/icu
         Make_Install
@@ -738,7 +740,7 @@ Download_Boost()
             MySQL_WITH_BOOST="-DWITH_BOOST=${cur_dir}/src/${Boost_Ver}"
         else
             cd ${cur_dir}/src/
-            Download_Files ${Download_Mirror}/lib/boost/${Boost_Ver}.tar.bz2 ${Boost_Ver}.tar.bz2
+            Download_Files ${Boost_URL} ${Boost_Ver}.tar.bz2
             tar jxf ${cur_dir}/src/${Boost_Ver}.tar.bz2
             cd -
             MySQL_WITH_BOOST="-DWITH_BOOST=${cur_dir}/src/${Boost_Ver}"
@@ -778,7 +780,7 @@ Install_Openssl()
     if [ ! -s /usr/local/openssl/bin/openssl ] || /usr/local/openssl/bin/openssl version | grep -v 'OpenSSL 1.0.2'; then
         Echo_Blue "[+] Installing ${Openssl_Ver}"
         cd ${cur_dir}/src
-        Download_Files ${Download_Mirror}/lib/openssl/${Openssl_Ver}.tar.gz ${Openssl_Ver}.tar.gz
+        Download_Files ${Openssl_URL} ${Openssl_Ver}.tar.gz
         [[ -d "${Openssl_Ver}" ]] && rm -rf ${Openssl_Ver}
         Tar_Cd ${Openssl_Ver}.tar.gz ${Openssl_Ver}
         ./config -fPIC --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
@@ -795,7 +797,7 @@ Install_Openssl_New()
         if [ ! -s /usr/local/openssl1.1.1/bin/openssl ] || /usr/local/openssl1.1.1/bin/openssl version | grep -v 'OpenSSL 1.1.1'; then
             Echo_Blue "[+] Installing ${Openssl_New_Ver}"
             cd ${cur_dir}/src
-            Download_Files ${Download_Mirror}/lib/openssl/${Openssl_New_Ver}.tar.gz ${Openssl_New_Ver}.tar.gz
+            Download_Files ${Openssl_New_URL} ${Openssl_New_Ver}.tar.gz
             [[ -d "${Openssl_New_Ver}" ]] && rm -rf ${Openssl_New_Ver}
             Tar_Cd ${Openssl_New_Ver}.tar.gz ${Openssl_New_Ver}
             ./config -fPIC --prefix=/usr/local/openssl1.1.1 --openssldir=/usr/local/openssl1.1.1
@@ -818,7 +820,7 @@ Install_Nghttp2()
     if [[ ! -s /usr/local/nghttp2/lib/libnghttp2.so || ! -s /usr/local/nghttp2/include/nghttp2/nghttp2.h ]]; then
         Echo_Blue "[+] Installing ${Nghttp2_Ver}"
         cd ${cur_dir}/src
-        Download_Files ${Download_Mirror}/lib/nghttp2/${Nghttp2_Ver}.tar.xz ${Nghttp2_Ver}.tar.xz
+        Download_Files ${Nghttp2_URL} ${Nghttp2_Ver}.tar.xz
         [[ -d "${Nghttp2_Ver}" ]] && rm -rf ${Nghttp2_Ver}
         Tar_Cd ${Nghttp2_Ver}.tar.xz ${Nghttp2_Ver}
         ./configure --prefix=/usr/local/nghttp2
@@ -834,7 +836,7 @@ Install_Libzip()
         if [ ! -s /usr/local/lib/libzip.so ]; then
             Echo_Blue "[+] Installing ${Libzip_Ver}"
             cd ${cur_dir}/src
-            Download_Files ${Download_Mirror}/lib/libzip/${Libzip_Ver}.tar.xz ${Libzip_Ver}.tar.xz
+            Download_Files ${Libzip_URL} ${Libzip_Ver}.tar.xz
             Tar_Cd ${Libzip_Ver}.tar.xz ${Libzip_Ver}
             ./configure
             Make_Install
@@ -986,51 +988,47 @@ Remove_Error_Libcurl()
 
 Add_Swap()
 {
-
     Disk_Avail=$(($(df -mP /var | tail -1 | awk '{print $4}' | sed s/[[:space:]]//g)/1024))
+    Disk_Total=$(($(df -mP /var | tail -1 | awk '{print $2}' | sed s/[[:space:]]//g)/1024))
 
     DD_Count='1024'
     if [[ "${MemTotal}" -lt 1024 ]]; then
         DD_Count='1024'
-        if [[ "${Disk_Avail}" -lt 5 ]]; then
-            Enable_Swap='n'
-        fi
     elif [[ "${MemTotal}" -ge 1024 && "${MemTotal}" -le 2048 ]]; then
         DD_Count='2048'
-        if [[ "${Disk_Avail}" -lt 13 ]]; then
-            Enable_Swap='n'
-        fi
     elif [[ "${MemTotal}" -ge 2048 && "${MemTotal}" -le 4096 ]]; then
         DD_Count='4096'
-        if [[ "${Disk_Avail}" -lt 17 ]]; then
-            Enable_Swap='n'
-        fi
-    elif [[ "${MemTotal}" -ge 4096 && "${MemTotal}" -le 16384 ]]; then
+    elif [[ "${MemTotal}" -ge 4096 ]]; then
         DD_Count='8192'
-        if [[ "${Disk_Avail}" -lt 19 ]]; then
-            Enable_Swap='n'
-        fi
-    elif [[ "${MemTotal}" -ge 16384 ]]; then
-        DD_Count='8192'
-        if [[ "${Disk_Avail}" -lt 27 ]]; then
-            Enable_Swap='n'
-        fi
     fi
+
+    Min_Free=$((Disk_Total * 30 / 100))
+    After_Swap=$((Disk_Avail - DD_Count / 1024))
+    if [[ "${After_Swap}" -lt "${Min_Free}" ]]; then
+        echo "Not enough disk space for ${DD_Count}MB swap (available: ${Disk_Avail}GB, need 30% free: ${Min_Free}GB). Skipping swap."
+        Enable_Swap='n'
+    fi
+
     Swap_Total=$(awk '/SwapTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo)
     if [[ "${Enable_Swap}" = "y" && "${Swap_Total}" -le 512 && ! -s /var/swapfile ]]; then
-        echo "Add Swap file..."
-        [ $(cat /proc/sys/vm/swappiness) -eq 0 ] && sysctl vm.swappiness=10
+        echo "Add Swap file (${DD_Count}MB)..."
         dd if=/dev/zero of=/var/swapfile bs=1M count=${DD_Count}
         chmod 0600 /var/swapfile
         echo "Enable Swap..."
         /sbin/mkswap /var/swapfile
         /sbin/swapon /var/swapfile
         if [ $? -eq 0 ]; then
-            [ `grep -L '/var/swapfile'    '/etc/fstab'` ] && echo "/var/swapfile swap swap defaults 0 0" >>/etc/fstab
+            if ! grep -q '/var/swapfile' /etc/fstab; then
+                echo "/var/swapfile swap swap defaults 0 0" >> /etc/fstab
+            fi
             /sbin/swapon -s
         else
             rm -f /var/swapfile
             echo "Add Swap Failed!"
+        fi
+        if [ ! -f /etc/sysctl.d/99-swappiness.conf ] || ! grep -q 'vm.swappiness' /etc/sysctl.d/99-swappiness.conf; then
+            echo "vm.swappiness=10" > /etc/sysctl.d/99-swappiness.conf
+            sysctl -p /etc/sysctl.d/99-swappiness.conf
         fi
     fi
 }

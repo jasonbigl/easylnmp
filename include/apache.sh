@@ -78,13 +78,13 @@ Install_Apache_24()
         echo "${APR_Ver}.tar.bz2 [found]"
         cp ${cur_dir}/src/${APR_Ver}.tar.bz2 .
     else
-        Download_Files ${Download_Mirror}/web/apache/${APR_Ver}.tar.bz2 ${APR_Ver}.tar.bz2
+        Download_Files ${APR_URL} ${APR_Ver}.tar.bz2
     fi
     if [ -s "${cur_dir}/src/${APR_Util_Ver}.tar.bz2" ]; then
         echo "${APR_Util_Ver}.tar.bz2 [found]"
         cp ${cur_dir}/src/${APR_Util_Ver}.tar.bz2 .
     else
-        Download_Files ${Download_Mirror}/web/apache/${APR_Util_Ver}.tar.bz2 ${APR_Util_Ver}.tar.bz2
+        Download_Files ${APR_Util_URL} ${APR_Util_Ver}.tar.bz2
     fi
     tar jxf ${APR_Ver}.tar.bz2
     tar jxf ${APR_Util_Ver}.tar.bz2

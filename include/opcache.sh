@@ -8,7 +8,7 @@ Install_Old_Opcache()
         rm -rf "${ZendOpcache_Ver}"
     fi
 
-    Download_Files ${Download_Mirror}/web/opcache/${ZendOpcache_Ver}.tgz ${ZendOpcache_Ver}.tgz
+    Download_Files ${ZendOpcache_URL} ${ZendOpcache_Ver}.tgz
     Tar_Cd ${ZendOpcache_Ver}.tgz ${ZendOpcache_Ver}
     ${PHP_Path}/bin/phpize
     ./configure --with-php-config=${PHP_Path}/bin/php-config

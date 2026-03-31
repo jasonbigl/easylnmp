@@ -40,7 +40,7 @@ Install_PHP_Sodium()
         cd -
         rm -rf php-${Cur_PHP_Version}
     elif echo "${Cur_PHP_Version}" | grep -Eqi '^7.[01].'; then
-        Download_Files ${Download_Mirror}/web/sodium/${PHPSodium_Ver}.tgz ${PHPSodium_Ver}.tgz
+        Download_Files ${PHPSodium_URL} ${PHPSodium_Ver}.tgz
         Tar_Cd ${PHPSodium_Ver}.tgz ${PHPSodium_Ver}
         ${PHP_Path}/bin/phpize
         ./configure --with-php-config=${PHP_Path}/bin/php-config
@@ -48,7 +48,7 @@ Install_PHP_Sodium()
         cd -
         rm -rf ${PHPSodium_Ver}
     elif echo "${Cur_PHP_Version}" | grep -Eqi '^5.[3-6].'; then
-        Download_Files ${Download_Mirror}/web/sodium/libsodium-1.0.7.tgz libsodium-1.0.7.tgz
+        Download_Files https://pecl.php.net/get/libsodium-1.0.7.tgz libsodium-1.0.7.tgz
         Tar_Cd libsodium-1.0.7.tgz libsodium-1.0.7
         ${PHP_Path}/bin/phpize
         ./configure --with-php-config=${PHP_Path}/bin/php-config

@@ -34,7 +34,7 @@ fi
 
 echo "Downloading..."
 cd ../src
-Download_Files ${Download_Mirror}/security/denyhosts/denyhosts-3.1.tar.gz denyhosts-3.1.tar.gz
+Download_Files https://github.com/denyhosts/denyhosts/archive/refs/tags/v3.1.tar.gz denyhosts-3.1.tar.gz
 Tar_Cd denyhosts-3.1.tar.gz denyhosts-3.1
 echo "Installing..."
 python setup.py install

@@ -27,8 +27,9 @@ Install_PHP_Imap()
                 if [ "${CheckMirror}" = "n" ]; then
                     rpm -ivh ${cur_dir}/src/libc-client-2007f-24.el9.${ARCH}.rpm ${cur_dir}/src/uw-imap-devel-2007f-24.el9.${ARCH}.rpm
                 else
-                    rpm -ivh ${Download_Mirror}/lib/uw-imap/libc-client-2007f-24.el9.${ARCH}.rpm
-                    rpm -ivh ${Download_Mirror}/lib/uw-imap/uw-imap-devel-2007f-24.el9.${ARCH}.rpm
+                    Echo_Red "Error: libc-client/uw-imap-devel RPMs not found locally and no official download available."
+                    Echo_Red "Please install manually: dnf install libc-client-devel uw-imap-devel (enable CRB/EPEL repo)"
+                    exit 1
                 fi
             fi
         fi

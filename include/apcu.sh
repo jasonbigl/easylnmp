@@ -28,10 +28,10 @@ Install_Apcu()
     cd ${cur_dir}/src
 
     if echo "${Cur_PHP_Version}" | grep -Eqi '^7.|8.'; then
-        Download_Files ${Download_Mirror}/web/apcu/${PHPNewApcu_Ver}.tgz ${PHPNewApcu_Ver}.tgz
+        Download_Files ${PHPNewApcu_URL} ${PHPNewApcu_Ver}.tgz
         Tar_Cd ${PHPNewApcu_Ver}.tgz ${PHPNewApcu_Ver}
     else
-        Download_Files ${Download_Mirror}/web/apcu/${PHPOldApcu_Ver}.tgz ${PHPOldApcu_Ver}.tgz
+        Download_Files ${PHPOldApcu_URL} ${PHPOldApcu_Ver}.tgz
         Tar_Cd ${PHPOldApcu_Ver}.tgz ${PHPOldApcu_Ver}
     fi
     ${PHP_Path}/bin/phpize
@@ -43,7 +43,7 @@ Install_Apcu()
     cd ..
 
     if echo "${Cur_PHP_Version}" | grep -Eqi '^7.'; then
-        Download_Files ${Download_Mirror}/web/apcu_bc/${PHPApcu_Bc_Ver}.tgz ${PHPApcu_Bc_Ver}.tgz
+        Download_Files ${PHPApcu_Bc_URL} ${PHPApcu_Bc_Ver}.tgz
         Tar_Cd ${PHPApcu_Bc_Ver}.tgz ${PHPApcu_Bc_Ver}
         ${PHP_Path}/bin/phpize
         ./configure --with-php-config=${PHP_Path}/bin/php-config

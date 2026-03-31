@@ -31,7 +31,7 @@ fi
 
 echo "Downloading..."
 cd ../src
-Download_Files ${Download_Mirror}/security/fail2ban/fail2ban-1.0.3.tar.gz fail2ban-1.0.3.tar.gz
+Download_Files ${Fail2ban_URL} fail2ban-1.0.3.tar.gz
 tar zxf fail2ban-1.0.3.tar.gz && cd fail2ban-1.0.3
 echo "Installing fail2ban..."
 python3 setup.py install

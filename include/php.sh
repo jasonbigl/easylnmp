@@ -147,8 +147,9 @@ PHP_with_Imap()
                     if [ "${CheckMirror}" = "n" ]; then
                         rpm -ivh ${cur_dir}/src/libc-client-2007f-24.el9.${ARCH}.rpm ${cur_dir}/src/uw-imap-devel-2007f-24.el9.${ARCH}.rpm
                     else
-                        rpm -ivh ${Download_Mirror}/lib/uw-imap/libc-client-2007f-24.el9.${ARCH}.rpm
-                        rpm -ivh ${Download_Mirror}/lib/uw-imap/uw-imap-devel-2007f-24.el9.${ARCH}.rpm
+                        Echo_Red "Error: libc-client/uw-imap-devel RPMs not found locally and no official download available."
+                        Echo_Red "Please install manually: dnf install libc-client-devel uw-imap-devel (enable CRB/EPEL repo)"
+                        exit 1
                     fi
                 fi
             fi
@@ -211,33 +212,17 @@ Install_Composer()
     if [ "${CheckMirror}" != "n" ]; then
         echo "Downloading Composer..."
         if echo "${PHPSelect}" | grep -Eqi '^[1-8]' || echo "${php_version}" | grep -Eqi '^5.[2-6].*|7.[0-2].*' || echo "${Php_Ver}" | grep -Eqi "php-5.[2-6].*|php-7.[0-2].*"; then
-            wget --progress=dot:giga --prefer-family=IPv4 --no-check-certificate -T 120 -t3 ${Download_Mirror}/web/php/composer/composer-2.2.phar -O /usr/local/bin/composer
-            if [ $? -eq 0 ]; then
-                echo "Composer install successfully."
-                chmod +x /usr/local/bin/composer
-            else
-                echo "Composer install failed, try to from composer official website..."
-                curl -sS --connect-timeout 30 -m 60 https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --2.2
-                if [ $? -eq 0 ]; then
-                    echo "Composer install successfully."
-                fi
-            fi
+            wget --progress=dot:giga --prefer-family=IPv4 -T 120 -t3 https://getcomposer.org/download/latest-2.2.x/composer.phar -O /usr/local/bin/composer
         else
-            wget --progress=dot:giga --prefer-family=IPv4 --no-check-certificate -T 120 -t3 https://mirrors.aliyun.com/composer/composer.phar -O /usr/local/bin/composer
-            if [ $? -eq 0 ]; then
-                echo "Composer install successfully."
-                chmod +x /usr/local/bin/composer
-            else
-                echo "Composer install failed, try to from composer official website..."
-                curl -sS --connect-timeout 30 -m 60 https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-                if [ $? -eq 0 ]; then
-                    echo "Composer install successfully."
-                fi
-            fi
+            wget --progress=dot:giga --prefer-family=IPv4 -T 120 -t3 https://getcomposer.org/download/latest-stable/composer.phar -O /usr/local/bin/composer
         fi
-        #if [ "${country}" = "CN" ]; then
-            #composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
-        #fi
+        if [ $? -eq 0 ]; then
+            echo "Composer install successfully."
+            chmod +x /usr/local/bin/composer
+        else
+            Echo_Red "Composer download failed!"
+            exit 1
+        fi
     fi
 }
 
@@ -280,7 +265,7 @@ PHP_Post_Configure()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -361,7 +346,7 @@ Install_PHP_52()
     sed -i 's#output_buffering =.*#output_buffering = On#' /usr/local/php/etc/php.ini
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/; cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -371,7 +356,7 @@ Install_PHP_52()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.2..."
-        Download_Files ${Download_Mirror}/web/zend/ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendOptimizer is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendOptimizer-3.3.9-linux-glibc23-${ARCH}/data/5_2_x_comp/ZendOptimizer.so /usr/local/zend/
@@ -415,7 +400,7 @@ Install_PHP_53()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -428,7 +413,7 @@ Install_PHP_53()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.3..."
-        Download_Files ${Download_Mirror}/web/zend/ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendGuardLoader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}/php-5.3.x/ZendGuardLoader.so /usr/local/zend/
@@ -506,7 +491,7 @@ Install_PHP_54()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -517,7 +502,7 @@ Install_PHP_54()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.4..."
-        Download_Files ${Download_Mirror}/web/zend/ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendGuardLoader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}/php-5.4.x/ZendGuardLoader.so /usr/local/zend/
@@ -599,7 +584,7 @@ Install_PHP_55()
     echo "Modify php.ini..."
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -610,7 +595,7 @@ Install_PHP_55()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.5..."
-        Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.5-linux-${ARCH}.tar.gz zend-loader-php5.5-linux-${ARCH}.tar.gz
+        Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd zend-loader-php5.5-linux-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp zend-loader-php5.5-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/
@@ -695,7 +680,7 @@ Install_PHP_56()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -706,7 +691,7 @@ Install_PHP_56()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.6..."
-        Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.6-linux-${ARCH}.tar.gz zend-loader-php5.6-linux-${ARCH}.tar.gz
+        Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd zend-loader-php5.6-linux-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp zend-loader-php5.6-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/

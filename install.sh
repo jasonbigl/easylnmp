@@ -61,7 +61,6 @@ Init_Install()
     Check_CMPT
     if [ "${CheckMirror}" != "n" ]; then
         Modify_Source
-        Check_Mirror
     fi
     Add_Swap
     Set_Timezone
@@ -226,12 +225,18 @@ case "${Stack}" in
     db)
         Install_Only_Database
         ;;
+    php)
+        Install_Only_PHP 2>&1 | tee /root/php-install.log
+        ;;
+    php-cli)
+        Install_Only_PHP_CLI 2>&1 | tee /root/php-install.log
+        ;;
     mphp)
         Install_Multiplephp
         ;;
     *)
         Echo_Red "Usage: $0 {lnmp|lnmpa|lamp}"
-        Echo_Red "Usage: $0 {nginx|db|mphp}"
+        Echo_Red "Usage: $0 {nginx|db|php|php-cli|mphp}"
         ;;
 esac
 

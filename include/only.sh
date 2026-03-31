@@ -39,13 +39,13 @@ Install_Only_Nginx()
     Modify_Source
     Nginx_Dependent
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/pcre/${Pcre_Ver}.tar.bz2 ${Pcre_Ver}.tar.bz2
+    Download_Files ${Pcre_URL} ${Pcre_Ver}.tar.bz2
     Install_Pcre
     if [ `grep -L '/usr/local/lib'    '/etc/ld.so.conf'` ]; then
         echo "/usr/local/lib" >> /etc/ld.so.conf
     fi
     ldconfig
-    Download_Files ${Download_Mirror}/web/nginx/${Nginx_Ver}.tar.gz ${Nginx_Ver}.tar.gz
+    Download_Files ${Nginx_URL} ${Nginx_Ver}.tar.gz
     Install_Nginx
     StartUp nginx
     rm -rf ${cur_dir}/src/${Nginx_Ver}
@@ -159,7 +159,7 @@ Install_Database()
                 exit 1
             fi
         else
-            Download_Files ${Download_Mirror}/datebase/mysql/${Mysql_Ver}.tar.gz ${Mysql_Ver}.tar.gz
+            Download_Files ${Mysql_Src_URL} ${Mysql_Ver}.tar.gz
             if [ ! -s ${Mysql_Ver}.tar.gz ]; then
                 Echo_Red "Error! Unable to download MySQL source code, please download it to src directory manually."
                 sleep 5
@@ -233,6 +233,59 @@ Install_Database()
     fi
 }
 
+PHP_Dependent()
+{
+    if [ "$PM" = "yum" ]; then
+        for packages in make cmake gcc gcc-c++ gcc-g77 flex bison file libtool libtool-libs autoconf automake re2c wget patch \
+            libjpeg libjpeg-devel libjpeg-turbo-devel libpng libpng-devel gd gd-devel \
+            libxml2 libxml2-devel zlib zlib-devel glib2 glib2-devel bzip2 bzip2-devel \
+            openssl openssl-devel curl curl-devel libcurl libcurl-devel \
+            e2fsprogs e2fsprogs-devel krb5 krb5-devel libidn libidn-devel \
+            pcre-devel gettext gettext-devel gmp-devel pspell-devel libcap \
+            libXpm-devel c-ares-devel libicu-devel libxslt libxslt-devel \
+            sqlite-devel oniguruma-devel libwebp-devel libzip-devel \
+            diffutils ca-certificates net-tools psmisc xz expat-devel \
+            lsof pkg-config iproute gnutls-devel;
+        do yum -y install $packages; done
+        if echo "${CentOS_Version}" | grep -Eqi "^8" || echo "${RHEL_Version}" | grep -Eqi "^8" || echo "${Rocky_Version}" | grep -Eqi "^8" || echo "${Alma_Version}" | grep -Eqi "^8"; then
+            Check_PowerTools
+            if [ "${repo_id}" != "" ]; then
+                for c8packages in rpcgen re2c oniguruma-devel;
+                do dnf --enablerepo=${repo_id} install ${c8packages} -y; done
+            fi
+        fi
+        if echo "${CentOS_Version}" | grep -Eqi "^9" || echo "${Alma_Version}" | grep -Eqi "^9" || echo "${Rocky_Version}" | grep -Eqi "^9"; then
+            dnf --enablerepo=crb install oniguruma-devel libxcrypt-compat -y
+        fi
+        if [ "${DISTRO}" = "Fedora" ] || echo "${CentOS_Version}" | grep -Eqi "^9"; then
+            dnf install chkconfig -y
+        fi
+    elif [ "$PM" = "apt" ]; then
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -y
+        [[ $? -ne 0 ]] && apt-get update --allow-releaseinfo-change -y
+        apt-get autoremove -y
+        apt-get -fy install
+        local deb_packages="build-essential gcc g++ make cmake autoconf automake re2c wget bzip2 patch \
+            libjpeg-dev libpng-dev libwebp-dev libglib2.0-dev libxml2-dev \
+            zlib1g zlib1g-dev libbz2-dev openssl libssl-dev libsasl2-dev \
+            curl libcurl4-openssl-dev libpcre3-dev libkrb5-dev gettext \
+            libxslt1-dev libsqlite3-dev libonig-dev libzip-dev libcap-dev \
+            ca-certificates psmisc libicu-dev libc-ares-dev e2fsprogs \
+            xz-utils libexpat1-dev libtool libevent-dev libc6-dev \
+            m4 flex bison file gawk diffutils unzip tar lsof pkg-config \
+            git-core iproute2 gzip libgd-dev libXpm-dev gnutls-dev"
+        if [[ "${Debian_Version}" -ge 11 ]] 2>/dev/null || echo "${Ubuntu_Version}" | grep -Eqi "^2[0-9]\."; then
+            deb_packages="${deb_packages} libncurses-dev libtinfo-dev"
+        else
+            deb_packages="${deb_packages} libncurses5 libncurses5-dev libtinfo-dev"
+        fi
+        for packages in ${deb_packages}; do
+            apt-get --no-install-recommends install -y $packages
+        done
+    fi
+}
+
 Install_Only_Database()
 {
     clear
@@ -259,4 +312,162 @@ Install_Only_Database()
     Echo_Red "The script will REMOVE MySQL/MariaDB installed via yum or apt-get and it's databases!!!"
     Press_Install
     Install_Database 2>&1 | tee /root/install_database.log
+}
+
+Install_Only_PHP()
+{
+    clear
+    echo "+-----------------------------------------------------------------------+"
+    echo "|          Install PHP + PHP-FPM for LNMP, Written by Licess            |"
+    echo "+-----------------------------------------------------------------------+"
+    echo "|           A tool to only install PHP with PHP-FPM support.            |"
+    echo "+-----------------------------------------------------------------------+"
+    echo "|           For more information please visit https://lnmp.org          |"
+    echo "+-----------------------------------------------------------------------+"
+
+    if [ -s /usr/local/php/bin/php ]; then
+        Echo_Red "PHP is already installed!"
+        /usr/local/php/bin/php -v
+        exit 1
+    fi
+
+    PHP_Selection
+    Press_Install
+
+    Get_Dist_Version
+    Print_Sys_Info
+    Set_Timezone
+
+    Echo_Blue "Install dependent packages..."
+    if [ "${CheckMirror}" != "n" ]; then
+        Modify_Source
+    fi
+    PHP_Dependent
+
+    if [ "$PM" = "yum" ]; then
+        CentOS_Lib_Opt
+    elif [ "$PM" = "apt" ]; then
+        Deb_Lib_Opt
+    fi
+
+    cd ${cur_dir}/src
+    Download_Files ${Libiconv_URL} ${Libiconv_Ver}.tar.gz
+    Download_Files ${LibMcrypt_URL} ${LibMcrypt_Ver}.tar.gz
+    Download_Files ${Mcrypt_URL} ${Mcypt_Ver}.tar.gz
+    Download_Files ${Mhash_URL} ${Mhash_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
+
+    Install_Libiconv
+    Install_Libmcrypt
+    Install_Mhash
+    Install_Mcrypt
+    Install_Freetype
+    Install_Pcre
+    Install_Icu4c
+
+    Check_Openssl
+
+    if [ `grep -L '/usr/local/lib' '/etc/ld.so.conf'` ]; then
+        echo "/usr/local/lib" >> /etc/ld.so.conf
+    fi
+    ldconfig
+
+    groupadd www 2>/dev/null
+    useradd -s /sbin/nologin -g www www 2>/dev/null
+
+    Stack="lnmp"
+    Check_PHP_Option
+    Install_PHP
+
+    LNMP_PHP_Opt
+    StartUp php-fpm
+    StartOrStop start php-fpm
+    Clean_PHP_Src_Dir
+
+    echo "============================PHP Install Check=============================="
+    Check_PHP_Files
+    if [ "${isPHP}" = "ok" ]; then
+        Echo_Green "PHP ${Php_Ver} with PHP-FPM installed successfully!"
+        Echo_Green "PHP binary: /usr/local/php/bin/php"
+        Echo_Green "PHP-FPM binary: /usr/local/php/sbin/php-fpm"
+        Echo_Green "PHP config: /usr/local/php/etc/php.ini"
+        Echo_Green "PHP-FPM config: /usr/local/php/etc/php-fpm.conf"
+    else
+        Echo_Red "PHP install failed!"
+    fi
+}
+
+Install_Only_PHP_CLI()
+{
+    clear
+    echo "+-----------------------------------------------------------------------+"
+    echo "|             Install PHP CLI Only for LNMP, Written by Licess          |"
+    echo "+-----------------------------------------------------------------------+"
+    echo "|         A tool to only install PHP CLI (without PHP-FPM).             |"
+    echo "+-----------------------------------------------------------------------+"
+    echo "|           For more information please visit https://lnmp.org          |"
+    echo "+-----------------------------------------------------------------------+"
+
+    if [ -s /usr/local/php/bin/php ]; then
+        Echo_Red "PHP is already installed!"
+        /usr/local/php/bin/php -v
+        exit 1
+    fi
+
+    PHP_Selection
+    Press_Install
+
+    Get_Dist_Version
+    Print_Sys_Info
+    Set_Timezone
+
+    Echo_Blue "Install dependent packages..."
+    if [ "${CheckMirror}" != "n" ]; then
+        Modify_Source
+    fi
+    PHP_Dependent
+
+    if [ "$PM" = "yum" ]; then
+        CentOS_Lib_Opt
+    elif [ "$PM" = "apt" ]; then
+        Deb_Lib_Opt
+    fi
+
+    cd ${cur_dir}/src
+    Download_Files ${Libiconv_URL} ${Libiconv_Ver}.tar.gz
+    Download_Files ${LibMcrypt_URL} ${LibMcrypt_Ver}.tar.gz
+    Download_Files ${Mcrypt_URL} ${Mcypt_Ver}.tar.gz
+    Download_Files ${Mhash_URL} ${Mhash_Ver}.tar.bz2
+    Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
+
+    Install_Libiconv
+    Install_Libmcrypt
+    Install_Mhash
+    Install_Mcrypt
+    Install_Freetype
+    Install_Pcre
+    Install_Icu4c
+
+    Check_Openssl
+
+    if [ `grep -L '/usr/local/lib' '/etc/ld.so.conf'` ]; then
+        echo "/usr/local/lib" >> /etc/ld.so.conf
+    fi
+    ldconfig
+
+    Stack="lnmp"
+    Check_PHP_Option
+    Install_PHP
+
+    Clean_PHP_Src_Dir
+
+    echo "============================PHP Install Check=============================="
+    if [[ -s /usr/local/php/bin/php && -s /usr/local/php/etc/php.ini ]]; then
+        Echo_Green "PHP: OK"
+        Echo_Green "PHP ${Php_Ver} CLI installed successfully!"
+        Echo_Green "PHP binary: /usr/local/php/bin/php"
+        Echo_Green "PHP config: /usr/local/php/etc/php.ini"
+    else
+        Echo_Red "PHP install failed!"
+    fi
 }

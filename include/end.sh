@@ -2,7 +2,10 @@
 
 Add_Iptables_Rules()
 {
-    #add iptables firewall rules
+    if [ "${Enable_Iptables}" = "n" ]; then
+        echo "Skipping iptables rules (Enable_Iptables=n in lnmp.conf). Relying on external firewall (e.g. AWS Security Groups)."
+        return 0
+    fi
     if command -v iptables >/dev/null 2>&1; then
         iptables -P INPUT DROP
         iptables -P FORWARD DROP

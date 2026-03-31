@@ -58,7 +58,7 @@ Start_Upgrade_PHP()
     fi
 
     if echo "${php_version}" | grep -Eqi '^5.2.';then
-        Download_Files ${Download_Mirror}/web/phpfpm/php-${php_version}-fpm-0.5.14.diff.gz php-${php_version}-fpm-0.5.14.diff.gz
+        echo "PHP 5.2 FPM patch download skipped (PHP 5.x deprecated)."
     fi
     lnmp stop
 
@@ -243,7 +243,7 @@ Upgrade_PHP_52()
     sed -i 's#output_buffering =.*#output_buffering = On#' /usr/local/php/etc/php.ini
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/; cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -253,7 +253,7 @@ Upgrade_PHP_52()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.2..."
-        Download_Files ${Download_Mirror}/web/zend/ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendOptimizer is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendOptimizer-3.3.9-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendOptimizer-3.3.9-linux-glibc23-${ARCH}/data/5_2_x_comp/ZendOptimizer.so /usr/local/zend/
@@ -299,7 +299,7 @@ Upgrade_PHP_53()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -311,7 +311,7 @@ Upgrade_PHP_53()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.3..."
-        Download_Files ${Download_Mirror}/web/zend/ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendGuardLoader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendGuardLoader-php-5.3-linux-glibc23-${ARCH}/php-5.3.x/ZendGuardLoader.so /usr/local/zend/
@@ -393,7 +393,7 @@ Upgrade_PHP_54()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -404,7 +404,7 @@ Upgrade_PHP_54()
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
         echo "Install ZendGuardLoader for PHP 5.4..."
-        Download_Files ${Download_Mirror}/web/zend/ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz
+        Echo_Red "ZendGuardLoader is no longer available for download (PHP 5.x deprecated)."
         Tar_Cd ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}.tar.gz
         mkdir -p /usr/local/zend/
         \cp ZendGuardLoader-70429-PHP-5.4-linux-glibc23-${ARCH}/php-5.4.x/ZendGuardLoader.so /usr/local/zend/
@@ -491,7 +491,7 @@ Upgrade_PHP_556()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -503,13 +503,13 @@ Upgrade_PHP_556()
     if [ "${Is_ARM}" != "y" ]; then
         if echo "${php_version}" | grep -Eqi '^5.5.';then
             echo "Install ZendGuardLoader for PHP 5.5..."
-            Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.5-linux-${ARCH}.tar.gz zend-loader-php5.5-linux-${ARCH}.tar.gz
+            Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
             Tar_Cd zend-loader-php5.5-linux-${ARCH}.tar.gz
             mkdir -p /usr/local/zend/
             \cp zend-loader-php5.5-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/
         elif echo "${php_version}" | grep -Eqi '^5.6.';then
             echo "Install ZendGuardLoader for PHP 5.6..."
-            Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.6-linux-${ARCH}.tar.gz zend-loader-php5.6-linux-${ARCH}.tar.gz
+            Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
             Tar_Cd zend-loader-php5.6-linux-${ARCH}.tar.gz
             mkdir -p /usr/local/zend/
             \cp zend-loader-php5.6-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/
@@ -601,7 +601,7 @@ Upgrade_PHP_7()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -678,7 +678,7 @@ Upgrade_PHP_72()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -755,7 +755,7 @@ Upgrade_PHP_73()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -832,7 +832,7 @@ Upgrade_PHP_74()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -909,7 +909,7 @@ Upgrade_PHP_80()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -986,7 +986,7 @@ Upgrade_PHP_81()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -1063,7 +1063,7 @@ Upgrade_PHP_82()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
@@ -1140,7 +1140,7 @@ Upgrade_PHP_83()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" /usr/local/php/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini

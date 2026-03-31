@@ -550,14 +550,44 @@ Apache_Selection()
 
 Kill_PM()
 {
+    local pm_pids=""
     if ps aux | grep -E "yum|dnf" | grep -qv "grep"; then
-        kill -9 $(ps -ef|grep -E "yum|dnf"|grep -v grep|awk '{print $2}')
+        pm_pids=$(ps -ef | grep -E "yum|dnf" | grep -v grep | awk '{print $2}')
+        if [ -n "${pm_pids}" ]; then
+            echo "Warning: Package manager (yum/dnf) is running. Sending SIGTERM..."
+            kill -15 ${pm_pids} 2>/dev/null
+            for i in $(seq 1 30); do
+                if ! ps aux | grep -E "yum|dnf" | grep -qv "grep"; then
+                    break
+                fi
+                sleep 1
+            done
+            if ps aux | grep -E "yum|dnf" | grep -qv "grep"; then
+                echo "Package manager did not stop, sending SIGKILL..."
+                kill -9 ${pm_pids} 2>/dev/null
+            fi
+        fi
         if [ -s /var/run/yum.pid ]; then
             rm -f /var/run/yum.pid
         fi
-    elif ps aux | grep -E "apt-get|dpkg|apt" | grep -qv "grep"; then
-        kill -9 $(ps -ef|grep -E "apt-get|apt|dpkg"|grep -v grep|awk '{print $2}')
+    elif ps aux | grep -E "apt-get|dpkg|apt " | grep -qv "grep"; then
+        pm_pids=$(ps -ef | grep -E "apt-get|apt |dpkg" | grep -v grep | awk '{print $2}')
+        if [ -n "${pm_pids}" ]; then
+            echo "Warning: Package manager (apt/dpkg) is running. Sending SIGTERM..."
+            kill -15 ${pm_pids} 2>/dev/null
+            for i in $(seq 1 30); do
+                if ! ps aux | grep -E "apt-get|dpkg|apt " | grep -qv "grep"; then
+                    break
+                fi
+                sleep 1
+            done
+            if ps aux | grep -E "apt-get|dpkg|apt " | grep -qv "grep"; then
+                echo "Package manager did not stop, sending SIGKILL..."
+                kill -9 ${pm_pids} 2>/dev/null
+            fi
+        fi
         if [[ -s /var/lib/dpkg/lock-frontend || -s /var/lib/dpkg/lock ]]; then
+            echo "Warning: Removing dpkg lock files..."
             rm -f /var/lib/dpkg/lock-frontend
             rm -f /var/lib/dpkg/lock
             dpkg --configure -a
@@ -762,8 +792,13 @@ Download_Files()
     if [ -s "${FileName}" ]; then
         echo "${FileName} [found]"
     else
-        echo "Notice: ${FileName} not found!!!download now..."
-        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 "${URL}"
+        echo "Downloading ${FileName} from ${URL} ..."
+        wget --progress=dot -e dotbytes=20M --prefer-family=IPv4 -O "${FileName}" "${URL}"
+        if [ $? -ne 0 ] || [ ! -s "${FileName}" ]; then
+            rm -f "${FileName}"
+            Echo_Red "Error: Failed to download ${FileName} from ${URL}"
+            exit 1
+        fi
     fi
     if [ -n "${ExpectedHash}" ] && [ -s "${FileName}" ]; then
         local ActualHash
@@ -806,7 +841,7 @@ Check_LNMPConf()
         Echo_Red "lnmp.conf was not exsit!"
         exit 1
     fi
-    if [[ "${Download_Mirror}" = "" || "${MySQL_Data_Dir}" = "" || "${MariaDB_Data_Dir}" = "" || "${Default_Website_Dir}" = "" ]]; then
+    if [[ "${MySQL_Data_Dir}" = "" || "${MariaDB_Data_Dir}" = "" || "${Default_Website_Dir}" = "" ]]; then
         Echo_Red "Can't get values from lnmp.conf!"
         exit 1
     fi
@@ -844,7 +879,6 @@ Print_APP_Ver()
     fi
     echo "Enable InnoDB: ${InstallInnodb}"
     echo "Print lnmp.conf infomation..."
-    echo "Download Mirror: ${Download_Mirror}"
     echo "Nginx Additional Modules: ${Nginx_Modules_Options}"
     echo "PHP Additional Modules: ${PHP_Modules_Options}"
     if [ "${Enable_PHP_Fileinfo}" = "y" ]; then
@@ -876,10 +910,6 @@ Print_Sys_Info()
     Check_Openssl
     Check_WSL
     Check_Docker
-    if [ "${CheckMirror}" != "n" ]; then
-        Get_Country
-        echo "Server Location: ${country}"
-    fi
 }
 
 StartUp()
@@ -919,77 +949,6 @@ Remove_StartUp()
     fi
 }
 
-Get_Country()
-{
-    if command -v curl >/dev/null 2>&1; then
-        country=$(curl -sSk --connect-timeout 30 -m 60 https://ip.vpszt.com/country)
-        if [ $? -ne 0 ]; then
-            country=$(curl -sSk --connect-timeout 30 -m 60 https://ip.vpser.net/country)
-        fi
-    else
-        country=$(wget --timeout=5 -q -O - https://ip.vpszt.com/country)
-    fi
-}
-
-Check_Mirror()
-{
-    if ! command -v curl >/dev/null 2>&1; then
-        if [ "$PM" = "yum" ]; then
-            yum install -y curl
-        elif [ "$PM" = "apt" ]; then
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y curl
-        fi
-    fi
-    if [ "${Download_Mirror}" = "https://soft.vpser.net" ]; then
-        echo "Try https://soft.vpser.net ..."
-        mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft.vpser.net)
-        if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-            echo "https://soft.vpser.net http code: ${mirror_code}"
-            ping -c 3 soft.vpser.net
-        else
-            ping -c 3 soft.vpser.net
-            if [ "${country}" = "CN" ]; then
-                echo "Try https://soft1.vpser.net ..."
-                mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft1.vpser.net)
-                if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                    echo "Change to mirror https://soft1.vpser.net"
-                    Download_Mirror='https://soft1.vpser.net'
-                else
-                    echo "Try https://soft2.vpser.net ..."
-                    mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft2.vpser.net)
-                    if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                        echo "Change to mirror https://soft2.vpser.net"
-                        Download_Mirror='https://soft2.vpser.net'
-                    else
-                        echo "Can not connect to download mirror,Please modify lnmp.conf manually."
-                        echo "More info,please visit https://lnmp.org/faq/download-url.html"
-                        exit 1
-                    fi
-                fi
-            else
-                echo "Try https://soft2.vpser.net ..."
-                mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft2.vpser.net)
-                if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                    echo "Change to mirror https://soft2.vpser.net"
-                    Download_Mirror='https://soft2.vpser.net'
-                else
-                    echo "Try https://soft1.vpser.net ..."
-                    mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft1.vpser.net)
-                    if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                        echo "Change to mirror https://soft1.vpser.net"
-                        Download_Mirror='https://soft1.vpser.net'
-                    else
-                        echo "Can not connect to download mirror,Please modify lnmp.conf manually."
-                        echo "More info,please visit https://lnmp.org/faq/download-url.html"
-                        exit 1
-                    fi
-                fi
-            fi
-        fi
-    fi
-}
 
 Check_CMPT()
 {

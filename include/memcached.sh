@@ -5,16 +5,16 @@ Install_PHPMemcache()
     echo "Install memcache php extension..."
     cd ${cur_dir}/src
     if echo "${Cur_PHP_Version}" | grep -Eqi '^8.';then
-        Download_Files ${Download_Mirror}/web/memcache/${PHP8Memcache_Ver}.tgz ${PHP8Memcache_Ver}.tgz
+        Download_Files ${PHP8Memcache_URL} ${PHP8Memcache_Ver}.tgz
         Tar_Cd ${PHP8Memcache_Ver}.tgz ${PHP8Memcache_Ver}
     elif echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
-        Download_Files ${Download_Mirror}/web/memcache/${PHP7Memcache_Ver}.tgz ${PHP7Memcache_Ver}.tgz
+        Download_Files ${PHP7Memcache_URL} ${PHP7Memcache_Ver}.tgz
         Tar_Cd ${PHP7Memcache_Ver}.tgz ${PHP7Memcache_Ver}
     else
         if ! gcc -dumpversion|grep -q "^[34]."; then
             export CFLAGS=" -fgnu89-inline"
         fi
-        Download_Files ${Download_Mirror}/web/memcache/${PHPMemcache_Ver}.tgz ${PHPMemcache_Ver}.tgz
+        Download_Files ${PHPMemcache_URL} ${PHPMemcache_Ver}.tgz
         Tar_Cd ${PHPMemcache_Ver}.tgz ${PHPMemcache_Ver}
     fi
     ${PHP_Path}/bin/phpize
@@ -40,7 +40,7 @@ Install_PHPMemcached()
         export DEBIAN_FRONTEND=noninteractive
         apt-get install libsasl2-2 sasl2-bin libsasl2-2 libsasl2-dev libsasl2-modules -y
     fi
-    Download_Files ${Download_Mirror}/web/libmemcached/${Libmemcached_Ver}.tar.gz
+    Download_Files ${Libmemcached_URL} ${Libmemcached_Ver}.tar.gz
     Tar_Cd ${Libmemcached_Ver}.tar.gz ${Libmemcached_Ver}
     if gcc -dumpversion|grep -Eq "^[7-9]|1[0-5]"; then
         patch -p1 < ${cur_dir}/src/patch/libmemcached-1.0.18-gcc7.patch
@@ -52,15 +52,15 @@ Install_PHPMemcached()
     cd ${cur_dir}/src
     if echo "${Cur_PHP_Version}" | grep -Eqi '^8.';then
         [[ -d "${PHP8Memcached_Ver}" ]] && rm -rf "${PHP8Memcached_Ver}"
-        Download_Files ${Download_Mirror}/web/php-memcached/${PHP8Memcached_Ver}.tgz ${PHP8Memcached_Ver}.tgz
+        Download_Files ${PHP8Memcached_URL} ${PHP8Memcached_Ver}.tgz
         Tar_Cd ${PHP8Memcached_Ver}.tgz ${PHP8Memcached_Ver}
     elif echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
         [[ -d "${PHP7Memcached_Ver}" ]] && rm -rf "${PHP7Memcached_Ver}"
-        Download_Files ${Download_Mirror}/web/php-memcached/${PHP7Memcached_Ver}.tgz ${PHP7Memcached_Ver}.tgz
+        Download_Files ${PHP7Memcached_URL} ${PHP7Memcached_Ver}.tgz
         Tar_Cd ${PHP7Memcached_Ver}.tgz ${PHP7Memcached_Ver}
     else
         [[ -d "${PHPMemcached_Ver}" ]] && rm -rf "${PHPMemcached_Ver}"
-        Download_Files ${Download_Mirror}/web/php-memcached/${PHPMemcached_Ver}.tgz ${PHPMemcached_Ver}.tgz
+        Download_Files ${PHPMemcached_URL} ${PHPMemcached_Ver}.tgz
         Tar_Cd ${PHPMemcached_Ver}.tgz ${PHPMemcached_Ver}
     fi
     ${PHP_Path}/bin/phpize
@@ -108,7 +108,7 @@ EOF
     if [ -s /usr/local/memcached/bin/memcached ]; then
         echo "Memcached already exists."
     else
-        Download_Files ${Download_Mirror}/web/memcached/${Memcached_Ver}.tar.gz ${Memcached_Ver}.tar.gz
+        Download_Files ${Memcached_URL} ${Memcached_Ver}.tar.gz
         Tar_Cd ${Memcached_Ver}.tar.gz ${Memcached_Ver}
         ./configure --prefix=/usr/local/memcached
         make &&make install

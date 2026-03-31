@@ -182,7 +182,7 @@ Upgrade_Multiplephp()
 Upgrade_MPHP5.6()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
     if [ "${ARCH}" = "aarch64" ]; then
@@ -200,7 +200,7 @@ Upgrade_MPHP5.6()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -208,21 +208,7 @@ Upgrade_MPHP5.6()
 
     cd ${cur_dir}/src
     if [ "${Is_ARM}" != "y" ]; then
-        echo "Install ZendGuardLoader for PHP 5.6..."
-        Download_Files ${Download_Mirror}/web/zend/zend-loader-php5.6-linux-${ARCH}.tar.gz zend-loader-php5.6-linux-${ARCH}.tar.gz
-        Tar_Cd zend-loader-php5.6-linux-${ARCH}.tar.gz
-        mkdir -p /usr/local/zend/
-        \cp zend-loader-php5.6-linux-${ARCH}/ZendGuardLoader.so /usr/local/zend/ZendGuardLoader5.6.so
-
-        echo "Write ZendGuardLoader to php.ini..."
-        cat >${Cur_MPHP_Path}/conf.d/002-zendguardloader.ini<<EOF
-[Zend ZendGuard Loader]
-zend_extension=/usr/local/zend/ZendGuardLoader5.6.so
-zend_loader.enable=1
-zend_loader.disable_licensing=0
-zend_loader.obfuscation_level_support=3
-zend_loader.license_path=
-EOF
+        Echo_Red "Zend Loader is no longer available for download (PHP 5.x deprecated)."
     fi
 
     echo "Creating new php-fpm configure file..."
@@ -279,7 +265,7 @@ EOF
 Upgrade_MPHP7.0()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
     ./configure --prefix=${Cur_MPHP_Path} --with-config-file-path=${Cur_MPHP_Path}/etc --with-config-file-scan-dir=${Cur_MPHP_Path}/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -294,7 +280,7 @@ Upgrade_MPHP7.0()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -358,7 +344,7 @@ EOF
 Upgrade_MPHP7.1()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
     PHP_Openssl3_Patch
@@ -374,7 +360,7 @@ Upgrade_MPHP7.1()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -438,7 +424,7 @@ EOF
 Upgrade_MPHP7.2()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
     PHP_Openssl3_Patch
@@ -454,7 +440,7 @@ Upgrade_MPHP7.2()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -518,7 +504,7 @@ EOF
 Upgrade_MPHP7.3()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
     PHP_Openssl3_Patch
@@ -534,7 +520,7 @@ Upgrade_MPHP7.3()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -598,7 +584,7 @@ EOF
 Upgrade_MPHP7.4()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
@@ -615,7 +601,7 @@ Upgrade_MPHP7.4()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -679,7 +665,7 @@ EOF
 Upgrade_MPHP8.0()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
@@ -696,7 +682,7 @@ Upgrade_MPHP8.0()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -760,7 +746,7 @@ EOF
 Upgrade_MPHP8.1()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
@@ -776,7 +762,7 @@ Upgrade_MPHP8.1()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -840,7 +826,7 @@ EOF
 Upgrade_MPHP8.2()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
@@ -856,7 +842,7 @@ Upgrade_MPHP8.2()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini
@@ -920,7 +906,7 @@ EOF
 Upgrade_MPHP8.3()
 {
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/web/php/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
+    Download_Files https://www.php.net/distributions/php-${php_version}.tar.bz2 php-${php_version}.tar.bz2
     Install_Libzip
     Echo_Blue "[+] Upgrading php-${php_version}"
     Tar_Cd php-${php_version}.tar.bz2 php-${php_version}
@@ -936,7 +922,7 @@ Upgrade_MPHP8.3()
     echo "Modify php.ini......"
     sed -i 's/post_max_size =.*/post_max_size = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' ${Cur_MPHP_Path}/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' ${Cur_MPHP_Path}/etc/php.ini
+    sed -i "s|;date.timezone =.*|date.timezone = ${TimeZone}|g" ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' ${Cur_MPHP_Path}/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' ${Cur_MPHP_Path}/etc/php.ini

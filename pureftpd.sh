@@ -41,7 +41,7 @@ Install_Pureftpd()
     fi
     Echo_Blue "Download files..."
     cd ${cur_dir}/src
-    Download_Files ${Download_Mirror}/ftp/pure-ftpd/${Pureftpd_Ver}.tar.bz2 ${Pureftpd_Ver}.tar.bz2
+    Download_Files ${Pureftpd_URL} ${Pureftpd_Ver}.tar.bz2
     if [ $? -eq 0 ]; then
         echo "Download ${Pureftpd_Ver}.tar.bz2 successfully!"
     else
