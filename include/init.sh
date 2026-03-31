@@ -125,7 +125,8 @@ Check_Hosts()
         echo "${pingresult}"
         if echo "${pingresult}" | grep -q "unknown host"; then
             echo "DNS...fail"
-            echo "Writing nameserver to /etc/resolv.conf ..."
+            echo "Backing up and writing nameserver to /etc/resolv.conf ..."
+            cp -a /etc/resolv.conf /etc/resolv.conf.bak.$(date +%Y%m%d%H%M%S) 2>/dev/null
             echo -e "nameserver 208.67.220.220\nnameserver 114.114.114.114" > /etc/resolv.conf
         else
             echo "DNS...ok"
@@ -797,7 +798,7 @@ Install_Openssl_New()
             Download_Files ${Download_Mirror}/lib/openssl/${Openssl_New_Ver}.tar.gz ${Openssl_New_Ver}.tar.gz
             [[ -d "${Openssl_New_Ver}" ]] && rm -rf ${Openssl_New_Ver}
             Tar_Cd ${Openssl_New_Ver}.tar.gz ${Openssl_New_Ver}
-            ./config enable-weak-ssl-ciphers -fPIC --prefix=/usr/local/openssl1.1.1 --openssldir=/usr/local/openssl1.1.1
+            ./config -fPIC --prefix=/usr/local/openssl1.1.1 --openssldir=/usr/local/openssl1.1.1
             make depend
             Make_Install
             ln -sf /usr/local/openssl1.1.1/lib/libcrypto.so.1.1 /usr/lib/
@@ -854,41 +855,45 @@ CentOS_Lib_Opt()
 
     ulimit -v unlimited
 
-    if [ `grep -L "/lib"    '/etc/ld.so.conf'` ]; then
+    if ! grep -q "/lib" /etc/ld.so.conf; then
         echo "/lib" >> /etc/ld.so.conf
     fi
 
-    if [ `grep -L '/usr/lib'    '/etc/ld.so.conf'` ]; then
+    if ! grep -q '/usr/lib' /etc/ld.so.conf; then
         echo "/usr/lib" >> /etc/ld.so.conf
-        #echo "/usr/lib/openssl/engines" >> /etc/ld.so.conf
     fi
 
-    if [ -d "/usr/lib64" ] && [ `grep -L '/usr/lib64'    '/etc/ld.so.conf'` ]; then
+    if [ -d "/usr/lib64" ] && ! grep -q '/usr/lib64' /etc/ld.so.conf; then
         echo "/usr/lib64" >> /etc/ld.so.conf
-        #echo "/usr/lib64/openssl/engines" >> /etc/ld.so.conf
     fi
 
-    if [ `grep -L '/usr/local/lib'    '/etc/ld.so.conf'` ]; then
+    if ! grep -q '/usr/local/lib' /etc/ld.so.conf; then
         echo "/usr/local/lib" >> /etc/ld.so.conf
     fi
 
     ldconfig
 
     if command -v systemd-detect-virt >/dev/null 2>&1 && [[ "$(systemd-detect-virt)" = "lxc" ]]; then
-        cat >>/etc/security/limits.conf<<eof
+        if ! grep -q 'soft nofile 65535' /etc/security/limits.conf; then
+            cat >>/etc/security/limits.conf<<eof
 * soft nofile 65535
 * hard nofile 65535
 eof
+        fi
     else
-        cat >>/etc/security/limits.conf<<eof
+        if ! grep -q 'soft nproc 65535' /etc/security/limits.conf; then
+            cat >>/etc/security/limits.conf<<eof
 * soft nproc 65535
 * hard nproc 65535
 * soft nofile 65535
 * hard nofile 65535
 eof
+        fi
     fi
 
-    echo "fs.file-max=65535" >> /etc/sysctl.conf
+    if ! grep -q "fs.file-max=65535" /etc/sysctl.conf; then
+        echo "fs.file-max=65535" >> /etc/sysctl.conf
+    fi
 
     if echo "${Fedora_Version}" | grep -Eqi "3[0-9]" && [ ! -d "/etc/init.d" ]; then
         ln -sf /etc/rc.d/init.d /etc/init.d
@@ -926,19 +931,19 @@ Deb_Lib_Opt()
 
     ulimit -v unlimited
 
-    if [ `grep -L "/lib"    '/etc/ld.so.conf'` ]; then
+    if ! grep -q "/lib" /etc/ld.so.conf; then
         echo "/lib" >> /etc/ld.so.conf
     fi
 
-    if [ `grep -L '/usr/lib'    '/etc/ld.so.conf'` ]; then
+    if ! grep -q '/usr/lib' /etc/ld.so.conf; then
         echo "/usr/lib" >> /etc/ld.so.conf
     fi
 
-    if [ -d "/usr/lib64" ] && [ `grep -L '/usr/lib64'    '/etc/ld.so.conf'` ]; then
+    if [ -d "/usr/lib64" ] && ! grep -q '/usr/lib64' /etc/ld.so.conf; then
         echo "/usr/lib64" >> /etc/ld.so.conf
     fi
 
-    if [ `grep -L '/usr/local/lib'    '/etc/ld.so.conf'` ]; then
+    if ! grep -q '/usr/local/lib' /etc/ld.so.conf; then
         echo "/usr/local/lib" >> /etc/ld.so.conf
     fi
 
@@ -958,14 +963,18 @@ Deb_Lib_Opt()
 
     ldconfig
 
-    cat >>/etc/security/limits.conf<<eof
+    if ! grep -q 'soft nproc 65535' /etc/security/limits.conf; then
+        cat >>/etc/security/limits.conf<<eof
 * soft nproc 65535
 * hard nproc 65535
 * soft nofile 65535
 * hard nofile 65535
 eof
+    fi
 
-    echo "fs.file-max=65535" >> /etc/sysctl.conf
+    if ! grep -q "fs.file-max=65535" /etc/sysctl.conf; then
+        echo "fs.file-max=65535" >> /etc/sysctl.conf
+    fi
 }
 
 Remove_Error_Libcurl()

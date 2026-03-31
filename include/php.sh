@@ -267,6 +267,66 @@ PHP_ICU70_Patch()
     fi
 }
 
+PHP_Post_Configure()
+{
+    PHP_Make_Install
+
+    Ln_PHP_Bin
+
+    echo "Copy new php configure file..."
+    mkdir -p /usr/local/php/{etc,conf.d}
+    \cp php.ini-production /usr/local/php/etc/php.ini
+
+    echo "Modify php.ini......"
+    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
+    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
+    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
+    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
+    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
+    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
+    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
+    Pear_Pecl_Set
+    Install_Composer
+}
+
+PHP_Setup_FPM()
+{
+    if [ "${Stack}" = "lnmp" ]; then
+        echo "Creating new php-fpm configure file..."
+        cat >/usr/local/php/etc/php-fpm.conf<<EOF
+[global]
+pid = /usr/local/php/var/run/php-fpm.pid
+error_log = /usr/local/php/var/log/php-fpm.log
+log_level = notice
+
+[www]
+listen = /tmp/php-cgi.sock
+listen.backlog = -1
+listen.allowed_clients = 127.0.0.1
+listen.owner = www
+listen.group = www
+listen.mode = 0666
+user = www
+group = www
+pm = dynamic
+pm.max_children = 10
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 6
+pm.max_requests = 1024
+pm.process_idle_timeout = 10s
+request_terminate_timeout = 100
+request_slowlog_timeout = 0
+slowlog = var/log/slow.log
+EOF
+
+        echo "Copy php-fpm init.d file..."
+        \cp "${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm" /etc/init.d/php-fpm
+        \cp "${cur_dir}/init.d/php-fpm.service" /etc/systemd/system/php-fpm.service
+        chmod +x /etc/init.d/php-fpm
+    fi
+}
+
 Install_PHP_52()
 {
     Echo_Blue "[+] Installing ${Php_Ver}..."
@@ -715,64 +775,8 @@ Install_PHP_7()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 7.0..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_71()
@@ -787,64 +791,8 @@ Install_PHP_71()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 7.1..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_72()
@@ -859,64 +807,8 @@ Install_PHP_72()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 7.2..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_73()
@@ -931,64 +823,8 @@ Install_PHP_73()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 7.3..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_74()
@@ -1003,64 +839,8 @@ Install_PHP_74()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype=/usr/local/freetype --with-jpeg --with-png --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --with-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 7.4..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_80()
@@ -1075,64 +855,8 @@ Install_PHP_80()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 8.0..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_81()
@@ -1146,64 +870,8 @@ Install_PHP_81()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 8.1..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_82()
@@ -1217,64 +885,8 @@ Install_PHP_82()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 8.2..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_83()
@@ -1288,64 +900,8 @@ Install_PHP_83()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 8.3..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 Install_PHP_84()
@@ -1359,64 +915,8 @@ Install_PHP_84()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
-
-    Ln_PHP_Bin
-
-    echo "Copy new php configure file..."
-    mkdir -p /usr/local/php/{etc,conf.d}
-    \cp php.ini-production /usr/local/php/etc/php.ini
-
-    # php extensions
-    echo "Modify php.ini......"
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-    Pear_Pecl_Set
-    Install_Composer
-
-    cd ${cur_dir}/src
-    echo "Install ZendGuardLoader for PHP 8.4..."
-    echo "unavailable now."
-
-if [ "${Stack}" = "lnmp" ]; then
-    echo "Creating new php-fpm configure file..."
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-
-    echo "Copy php-fpm init.d file..."
-    \cp ${cur_dir}/src/${Php_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${cur_dir}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-fi
+    PHP_Post_Configure
+    PHP_Setup_FPM
 }
 
 LNMP_PHP_Opt()
@@ -1446,33 +946,28 @@ LNMP_PHP_Opt()
 
 Creat_PHP_Tools()
 {
-    echo "Create PHP Info Tool..."
-    cat >${Default_Website_Dir}/phpinfo.php<<eof
-<?php
-phpinfo();
-?>
-eof
-
-    echo "Copy PHP Prober..."
-    cd ${cur_dir}/src
-    tar zxf p.tar.gz
-    \cp p.php ${Default_Website_Dir}/p.php
-
     \cp ${cur_dir}/conf/index.html ${Default_Website_Dir}/index.html
     \cp ${cur_dir}/conf/lnmp.gif ${Default_Website_Dir}/lnmp.gif
 
-    if [ ${PHPSelect} -ge 4 ]; then
+    if [ "${PHPSelect}" -ge 4 ]; then
         echo "Copy Opcache Control Panel..."
         \cp ${cur_dir}/conf/ocp.php ${Default_Website_Dir}/ocp.php
     fi
     echo "============================Install PHPMyAdmin================================="
-    [[ -d ${Default_Website_Dir}/phpmyadmin ]] && rm -rf ${Default_Website_Dir}/phpmyadmin
-    tar Jxf ${PhpMyAdmin_Ver}.tar.xz
-    mv ${PhpMyAdmin_Ver} ${Default_Website_Dir}/phpmyadmin
-    \cp ${cur_dir}/conf/config.inc.php ${Default_Website_Dir}/phpmyadmin/config.inc.php
-    sed -i 's/LNMPORG/LNMP.org_'`date +%s%N | head -c 13`'_VPSer.net/g' ${Default_Website_Dir}/phpmyadmin/config.inc.php
-    mkdir ${Default_Website_Dir}/phpmyadmin/{upload,save}
-    chmod 755 -R ${Default_Website_Dir}/phpmyadmin/
-    chown www:www -R ${Default_Website_Dir}/phpmyadmin/
+    local pma_suffix
+    pma_suffix=$(openssl rand -hex 6)
+    local pma_dir="phpmyadmin_${pma_suffix}"
+    [[ -d "${Default_Website_Dir}/${pma_dir}" ]] && rm -rf "${Default_Website_Dir}/${pma_dir}"
+    [[ -d "${Default_Website_Dir}/phpmyadmin" ]] && rm -rf "${Default_Website_Dir}/phpmyadmin"
+    cd "${cur_dir}/src"
+    tar Jxf "${PhpMyAdmin_Ver}.tar.xz"
+    mv "${PhpMyAdmin_Ver}" "${Default_Website_Dir}/${pma_dir}"
+    \cp "${cur_dir}/conf/config.inc.php" "${Default_Website_Dir}/${pma_dir}/config.inc.php"
+    sed -i "s/LNMPORG/LNMP.org_$(date +%s%N | head -c 13)_VPSer.net/g" "${Default_Website_Dir}/${pma_dir}/config.inc.php"
+    mkdir "${Default_Website_Dir}/${pma_dir}"/{upload,save}
+    chmod 755 -R "${Default_Website_Dir}/${pma_dir}/"
+    chown www:www -R "${Default_Website_Dir}/${pma_dir}/"
+    echo "phpMyAdmin installed to: ${Default_Website_Dir}/${pma_dir}/"
+    echo "Access URL: http://YOUR_IP/${pma_dir}/"
     echo "============================phpMyAdmin install completed======================="
 }

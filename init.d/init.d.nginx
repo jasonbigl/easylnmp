@@ -19,18 +19,18 @@
 
 NGINX_BIN='/usr/local/nginx/sbin/nginx'
 CONFIG='/usr/local/nginx/conf/nginx.conf'
+PIDFILE='/usr/local/nginx/logs/nginx.pid'
 
 case "$1" in
     start)
         echo -n "Starting nginx... "
 
-        PID=$(ps -ef | grep "$NGINX_BIN" | grep -v grep | awk '{print $2}')
-        if [ "$PID" != "" ]; then
-            echo "nginx (pid $PID) already running."
+        if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            echo "nginx (pid $(cat "$PIDFILE")) already running."
             exit 1
         fi
 
-        $NGINX_BIN -c $CONFIG
+        "$NGINX_BIN" -c "$CONFIG"
 
         if [ "$?" != 0 ]; then
             echo " failed"

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 DB_Info=('MySQL 5.1.73' 'MySQL 5.5.62' 'MySQL 5.6.51' 'MySQL 5.7.44' 'MySQL 8.0.37' 'MariaDB 5.5.68' 'MariaDB 10.4.33' 'MariaDB 10.5.24' 'MariaDB 10.6.17' 'MariaDB 10.11.7' 'MySQL 8.4.0')
-PHP_Info=('PHP 5.2.17' 'PHP 5.3.29' 'PHP 5.4.45' 'PHP 5.5.38' 'PHP 5.6.40' 'PHP 7.0.33' 'PHP 7.1.33' 'PHP 7.2.34' 'PHP 7.3.33' 'PHP 7.4.33' 'PHP 8.0.30' 'PHP 8.1.28' 'PHP 8.2.19' 'PHP 8.3.7')
+PHP_Info=('PHP 5.2.17' 'PHP 5.3.29' 'PHP 5.4.45' 'PHP 5.5.38' 'PHP 5.6.40' 'PHP 7.0.33' 'PHP 7.1.33' 'PHP 7.2.34' 'PHP 7.3.33' 'PHP 7.4.33' 'PHP 8.0.30' 'PHP 8.1.28' 'PHP 8.2.19' 'PHP 8.3.7' 'PHP 8.4.0')
 Apache_Info=('Apache 2.2.34' 'Apache 2.4.57')
 
 Database_Selection()
 {
 #which MySQL Version do you want to install?
-    if [ -z ${DBSelect} ]; then
+    if [ -z "${DBSelect}" ]; then
         DBSelect="2"
         Echo_Yellow "You have 11 options for your DataBase install."
         echo "1: Install ${DB_Info[0]}"
@@ -31,7 +31,7 @@ Database_Selection()
         ;;
     2)
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -54,7 +54,7 @@ Database_Selection()
         ;;
     3)
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -82,7 +82,7 @@ Database_Selection()
         ;;
     4)
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -110,7 +110,7 @@ Database_Selection()
         ;;
     5)
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" || "${DB_ARCH}" = "aarch64" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -139,7 +139,7 @@ Database_Selection()
     6)
         echo "You will install ${DB_Info[5]}"
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -168,7 +168,7 @@ Database_Selection()
     7)
         echo "You will install ${DB_Info[6]}"
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -197,7 +197,7 @@ Database_Selection()
     8)
         echo "You will install ${DB_Info[7]}"
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -226,7 +226,7 @@ Database_Selection()
     9)
         echo "You will install ${DB_Info[8]}"
         if [[ "${DB_ARCH}" = "x86_64" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -255,7 +255,7 @@ Database_Selection()
     10)
         echo "You will install ${DB_Info[9]}"
         if [[ "${DB_ARCH}" = "x86_64" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -284,7 +284,7 @@ Database_Selection()
     11)
         echo "You will install ${DB_Info[10]}"
         if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" || "${DB_ARCH}" = "aarch64" ]]; then
-            if [ -z ${Bin} ]; then
+            if [ -z "${Bin}" ]; then
                 read -p "Using Generic Binaries [y/n]: " Bin
             fi
             case "${Bin}" in
@@ -318,7 +318,7 @@ Database_Selection()
         DBSelect="2"
     esac
 
-    if [ "${Bin}" != "y" ] && [[ "${DBSelect}" =~ ^5|[7-9]|1[0-1]$ ]] && [ $(awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo) -le 1024 ]; then
+    if [ "${Bin}" != "y" ] && [[ "${DBSelect}" =~ ^(5|[7-9]|1[0-1])$ ]] && [ "$(awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo)" -le 1024 ]; then
         echo "Memory less than 1GB, can't install MySQL 8.0 or MairaDB 10.3+!"
         exit 1
     fi
@@ -335,22 +335,21 @@ Database_Selection()
 
     if [[ "${DBSelect}" != "0" ]]; then
         #set mysql root password
-        if [ -z ${DB_Root_Password} ]; then
+        if [ -z "${DB_Root_Password}" ]; then
             echo "==========================="
-            DB_Root_Password="root"
             Echo_Yellow "Please setup root password of MySQL."
             read -p "Please enter: " DB_Root_Password
             if [ "${DB_Root_Password}" = "" ]; then
                 echo "NO input,password will be generated randomly."
-                DB_Root_Password="lnmp.org#$RANDOM"
+                DB_Root_Password=$(openssl rand -base64 24)
             fi
         fi
-        echo "MySQL root password: ${DB_Root_Password}"
+        echo "MySQL root password has been set (hidden for security)."
 
         #do you want to enable or disable the InnoDB Storage Engine?
         echo "==========================="
 
-        if [ -z ${InstallInnodb} ]; then
+        if [ -z "${InstallInnodb}" ]; then
             InstallInnodb="y"
             Echo_Yellow "Do you want to enable or disable the InnoDB Storage Engine?"
             read -p "Default enable,Enter your choice [Y/n]: " InstallInnodb
@@ -375,16 +374,16 @@ Database_Selection()
 PHP_Selection()
 {
 #which PHP Version do you want to install?
-    if [ -z ${PHPSelect} ]; then
+    if [ -z "${PHPSelect}" ]; then
         echo "==========================="
 
-        PHPSelect="3"
-        Echo_Yellow "You have 9 options for your PHP install."
+        PHPSelect="13"
+        Echo_Yellow "You have 15 options for your PHP install."
         echo "1: Install ${PHP_Info[0]}"
         echo "2: Install ${PHP_Info[1]}"
         echo "3: Install ${PHP_Info[2]}"
         echo "4: Install ${PHP_Info[3]}"
-        echo "5: Install ${PHP_Info[4]} (Default)"
+        echo "5: Install ${PHP_Info[4]}"
         echo "6: Install ${PHP_Info[5]}"
         echo "7: Install ${PHP_Info[6]}"
         echo "8: Install ${PHP_Info[7]}"
@@ -392,9 +391,10 @@ PHP_Selection()
         echo "10: Install ${PHP_Info[9]}"
         echo "11: Install ${PHP_Info[10]}"
         echo "12: Install ${PHP_Info[11]}"
-        echo "13: Install ${PHP_Info[12]}"
+        echo "13: Install ${PHP_Info[12]} (Default)"
         echo "14: Install ${PHP_Info[13]}"
-        read -p "Enter your choice (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14): " PHPSelect
+        echo "15: Install ${PHP_Info[14]}"
+        read -p "Enter your choice (1-15): " PHPSelect
     fi
 
     case "${PHPSelect}" in
@@ -409,7 +409,7 @@ PHP_Selection()
         echo "You will install ${PHP_Info[1]}"
         ;;
     3)
-        echo "You will Install ${PHP_Info[2]}"
+        echo "You will install ${PHP_Info[2]}"
         ;;
     4)
         echo "You will install ${PHP_Info[3]}"
@@ -444,16 +444,19 @@ PHP_Selection()
     14)
         echo "You will install ${PHP_Info[13]}"
         ;;
+    15)
+        echo "You will install ${PHP_Info[14]}"
+        ;;
     *)
-        echo "No input,You will install ${PHP_Info[4]}"
-        PHPSelect="5"
+        echo "No input,You will install ${PHP_Info[12]}"
+        PHPSelect="13"
     esac
 }
 
 MemoryAllocator_Selection()
 {
 #which Memory Allocator do you want to install?
-    if [ -z ${SelectMalloc} ]; then
+    if [ -z "${SelectMalloc}" ]; then
         echo "==========================="
 
         SelectMalloc="1"
@@ -507,7 +510,7 @@ Apache_Selection()
 {
     echo "==========================="
     #set Server Administrator Email Address
-    if [ -z ${ServerAdmin} ]; then
+    if [ -z "${ServerAdmin}" ]; then
         ServerAdmin=""
         read -p "Please enter Administrator Email Address: " ServerAdmin
     fi
@@ -522,7 +525,7 @@ Apache_Selection()
     echo "==========================="
 
 #which Apache Version do you want to install?
-    if [ -z ${ApacheSelect} ]; then
+    if [ -z "${ApacheSelect}" ]; then
         ApacheSelect="1"
         Echo_Yellow "You have 2 options for your Apache install."
         echo "1: Install ${Apache_Info[0]}"
@@ -564,7 +567,7 @@ Kill_PM()
 
 Press_Install()
 {
-    if [ -z ${LNMP_Auto} ]; then
+    if [ -z "${LNMP_Auto}" ]; then
         echo ""
         Echo_Green "Press any key to install...or Press Ctrl+c to cancel"
         OLDCONFIG=`stty -g`
@@ -755,11 +758,24 @@ Download_Files()
 {
     local URL=$1
     local FileName=$2
+    local ExpectedHash=$3
     if [ -s "${FileName}" ]; then
         echo "${FileName} [found]"
     else
         echo "Notice: ${FileName} not found!!!download now..."
-        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 --no-check-certificate ${URL}
+        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 "${URL}"
+    fi
+    if [ -n "${ExpectedHash}" ] && [ -s "${FileName}" ]; then
+        local ActualHash
+        ActualHash=$(sha256sum "${FileName}" | awk '{print $1}')
+        if [ "${ActualHash}" != "${ExpectedHash}" ]; then
+            Echo_Red "SHA256 checksum mismatch for ${FileName}!"
+            Echo_Red "Expected: ${ExpectedHash}"
+            Echo_Red "Actual:   ${ActualHash}"
+            rm -f "${FileName}"
+            exit 1
+        fi
+        echo "${FileName} SHA256 checksum verified."
     fi
 }
 
@@ -906,12 +922,12 @@ Remove_StartUp()
 Get_Country()
 {
     if command -v curl >/dev/null 2>&1; then
-        country=`curl -sSk --connect-timeout 30 -m 60 http://ip.vpszt.com/country`
+        country=$(curl -sSk --connect-timeout 30 -m 60 https://ip.vpszt.com/country)
         if [ $? -ne 0 ]; then
-            country=`curl -sSk --connect-timeout 30 -m 60 https://ip.vpser.net/country`
+            country=$(curl -sSk --connect-timeout 30 -m 60 https://ip.vpser.net/country)
         fi
     else
-        country=`wget --timeout=5 --no-check-certificate -q -O - http://ip.vpszt.com/country`
+        country=$(wget --timeout=5 -q -O - https://ip.vpszt.com/country)
     fi
 }
 
@@ -927,25 +943,25 @@ Check_Mirror()
         fi
     fi
     if [ "${Download_Mirror}" = "https://soft.vpser.net" ]; then
-        echo "Try http://soft.vpser.net ..."
-        mirror_code=`curl -o /dev/null -m 20 --connect-timeout 20 -sk -w %{http_code} http://soft.vpser.net`
+        echo "Try https://soft.vpser.net ..."
+        mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft.vpser.net)
         if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-            echo "http://soft.vpser.net http code: ${mirror_code}"
+            echo "https://soft.vpser.net http code: ${mirror_code}"
             ping -c 3 soft.vpser.net
         else
             ping -c 3 soft.vpser.net
             if [ "${country}" = "CN" ]; then
-                echo "Try http://soft1.vpser.net ..."
-                mirror_code=`curl -o /dev/null -m 20 --connect-timeout 20 -sk -w %{http_code} http://soft1.vpser.net`
+                echo "Try https://soft1.vpser.net ..."
+                mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft1.vpser.net)
                 if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                    echo "Change to mirror http://soft1.vpser.net"
-                    Download_Mirror='http://soft1.vpser.net'
+                    echo "Change to mirror https://soft1.vpser.net"
+                    Download_Mirror='https://soft1.vpser.net'
                 else
-                    echo "Try http://soft2.vpser.net ..."
-                    mirror_code=`curl -o /dev/null -m 20 --connect-timeout 20 -sk -w %{http_code} http://soft2.vpser.net`
+                    echo "Try https://soft2.vpser.net ..."
+                    mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft2.vpser.net)
                     if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                        echo "Change to mirror http://soft2.vpser.net"
-                        Download_Mirror='http://soft2.vpser.net'
+                        echo "Change to mirror https://soft2.vpser.net"
+                        Download_Mirror='https://soft2.vpser.net'
                     else
                         echo "Can not connect to download mirror,Please modify lnmp.conf manually."
                         echo "More info,please visit https://lnmp.org/faq/download-url.html"
@@ -953,17 +969,17 @@ Check_Mirror()
                     fi
                 fi
             else
-                echo "Try http://soft2.vpser.net ..."
-                mirror_code=`curl -o /dev/null -m 20 --connect-timeout 20 -sk -w %{http_code} http://soft2.vpser.net`
+                echo "Try https://soft2.vpser.net ..."
+                mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft2.vpser.net)
                 if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                    echo "Change to mirror http://soft2.vpser.net"
-                    Download_Mirror='http://soft2.vpser.net'
+                    echo "Change to mirror https://soft2.vpser.net"
+                    Download_Mirror='https://soft2.vpser.net'
                 else
-                    echo "Try http://soft1.vpser.net ..."
-                    mirror_code=`curl -o /dev/null -m 20 --connect-timeout 20 -sk -w %{http_code} http://soft1.vpser.net`
+                    echo "Try https://soft1.vpser.net ..."
+                    mirror_code=$(curl -o /dev/null -m 20 --connect-timeout 20 -sk -w '%{http_code}' https://soft1.vpser.net)
                     if [[ "${mirror_code}" = "200" || "${mirror_code}" = "302" ]]; then
-                        echo "Change to mirror http://soft1.vpser.net"
-                        Download_Mirror='http://soft1.vpser.net'
+                        echo "Change to mirror https://soft1.vpser.net"
+                        Download_Mirror='https://soft1.vpser.net'
                     else
                         echo "Can not connect to download mirror,Please modify lnmp.conf manually."
                         echo "More info,please visit https://lnmp.org/faq/download-url.html"
@@ -983,7 +999,7 @@ Check_CMPT()
             exit 1
         fi
     fi
-    if [[ "${PHPSelect}" =~ ^1[0-3]$ ]]; then
+    if [[ "${PHPSelect}" =~ ^1[0-5]$ ]]; then
         if echo "${Ubuntu_Version}" | grep -Eqi "^1[0-7]\." || echo "${Debian_Version}" | grep -Eqi "^[4-8]" || echo "${Raspbian_Version}" | grep -Eqi "^[4-8]" || echo "${CentOS_Version}" | grep -Eqi "^[4-6]"  || echo "${RHEL_Version}" | grep -Eqi "^[4-6]" || echo "${Fedora_Version}" | grep -Eqi "^2[0-3]"; then
             Echo_Red "PHP 7.4 and PHP 8.* please use latest linux distributions!"
             exit 1
@@ -1063,18 +1079,25 @@ Check_DB()
 
 Do_Query()
 {
-    echo "$1" >/tmp/.mysql.tmp
+    local tmpfile
+    tmpfile=$(mktemp /tmp/.mysql.XXXXXX)
+    chmod 600 "${tmpfile}"
+    echo "$1" > "${tmpfile}"
     Check_DB
-    ${MySQL_Bin} --defaults-file=~/.my.cnf </tmp/.mysql.tmp
-    return $?
+    "${MySQL_Bin}" --defaults-file=~/.my.cnf < "${tmpfile}"
+    local ret=$?
+    rm -f "${tmpfile}"
+    return ${ret}
 }
 
 Make_TempMycnf()
 {
+    local escaped_pw
+    escaped_pw=$(printf '%s' "$1" | sed "s/'/\\\\'/g")
     cat >~/.my.cnf<<EOF
 [client]
 user=root
-password='$1'
+password='${escaped_pw}'
 EOF
     chmod 600 ~/.my.cnf
 }

@@ -4,13 +4,18 @@ Add_Iptables_Rules()
 {
     #add iptables firewall rules
     if command -v iptables >/dev/null 2>&1; then
+        iptables -P INPUT DROP
+        iptables -P FORWARD DROP
+        iptables -P OUTPUT ACCEPT
         iptables -I INPUT 1 -i lo -j ACCEPT
         iptables -I INPUT 2 -m state --state ESTABLISHED,RELATED -j ACCEPT
-        iptables -I INPUT 3 -p tcp --dport 22 -j ACCEPT
-        iptables -I INPUT 4 -p tcp --dport 80 -j ACCEPT
-        iptables -I INPUT 5 -p tcp --dport 443 -j ACCEPT
-        iptables -I INPUT 6 -p tcp --dport 3306 -j DROP
-        iptables -I INPUT 7 -p icmp -m icmp --icmp-type 8 -j ACCEPT
+        iptables -I INPUT 3 -p tcp --dport 22 -m state --state NEW -m recent --set --name SSH
+        iptables -I INPUT 4 -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 6 --name SSH -j DROP
+        iptables -I INPUT 5 -p tcp --dport 22 -j ACCEPT
+        iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
+        iptables -I INPUT 7 -p tcp --dport 443 -j ACCEPT
+        iptables -I INPUT 8 -p tcp --dport 3306 -j DROP
+        iptables -I INPUT 9 -p icmp -m icmp --icmp-type 8 -j ACCEPT
         if [ "$PM" = "yum" ]; then
             yum -y install iptables-services
             service iptables save
@@ -233,16 +238,15 @@ Print_Sucess_Info()
     echo "+------------------------------------------------------------------------+"
     echo "|    lnmp status manage: lnmp {start|stop|reload|restart|kill|status}    |"
     echo "+------------------------------------------------------------------------+"
-    echo "|  phpMyAdmin: http://IP/phpmyadmin/                                     |"
-    echo "|  phpinfo: http://IP/phpinfo.php                                        |"
-    echo "|  Prober:  http://IP/p.php                                              |"
-    echo "+------------------------------------------------------------------------+"
     echo "|  Add VirtualHost: lnmp vhost add                                       |"
     echo "+------------------------------------------------------------------------+"
     echo "|  Default directory: ${Default_Website_Dir}                              |"
     if [ "${DBSelect}" != "0" ]; then
         echo "+------------------------------------------------------------------------+"
-        echo "|  MySQL/MariaDB root password: ${DB_Root_Password}                          |"
+        echo "|  MySQL/MariaDB root password was saved to: /root/.db_root_pw            |"
+        install -m 600 /dev/null /root/.db_root_pw 2>/dev/null
+        echo "${DB_Root_Password}" > /root/.db_root_pw
+        chmod 600 /root/.db_root_pw
     fi
     echo "+------------------------------------------------------------------------+"
     lnmp status
@@ -284,7 +288,7 @@ Check_LNMPA_Install()
     Check_DB_Files
     Check_PHP_Files
     Check_Apache_Files
-    if [[ "${isNginx}" = "ok" && "${isDB}" = "ok" && "${isPHP}" = "ok"  &&"${isApache}" = "ok" ]]; then
+    if [[ "${isNginx}" = "ok" && "${isDB}" = "ok" && "${isPHP}" = "ok" && "${isApache}" = "ok" ]]; then
         Print_Sucess_Info
     else
         Print_Failed_Info

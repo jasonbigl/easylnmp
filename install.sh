@@ -2,7 +2,7 @@
 export PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 
 # Check if user is root
-if [ $(id -u) != "0" ]; then
+if [ "$(id -u)" != "0" ]; then
     echo "Error: You must be root to run this script, please use root to install lnmp"
     exit 1
 fi
@@ -16,18 +16,14 @@ else
 fi
 
 LNMP_Ver='2.1'
-. lnmp.conf
-. include/main.sh
-. include/init.sh
-. include/mysql.sh
-. include/mariadb.sh
-. include/php.sh
-. include/nginx.sh
-. include/caddy.sh
-. include/apache.sh
-. include/end.sh
-. include/only.sh
-. include/multiplephp.sh
+
+for _f in lnmp.conf include/main.sh include/init.sh include/mysql.sh include/mariadb.sh include/php.sh include/nginx.sh include/caddy.sh include/apache.sh include/end.sh include/only.sh include/multiplephp.sh; do
+    if [ ! -f "${_f}" ]; then
+        echo "Error: Required file '${_f}' not found. Please run this script from the easylnmp directory."
+        exit 1
+    fi
+    . "${_f}"
+done
 
 Get_Dist_Name
 

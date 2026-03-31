@@ -16,7 +16,7 @@ Install_Nginx_Openssl()
             Download_Files ${Download_Mirror}/lib/openssl/${Openssl_New_Ver}.tar.gz ${Openssl_New_Ver}.tar.gz
             [[ -d "${Openssl_New_Ver}" ]] && rm -rf ${Openssl_New_Ver}
             tar zxf ${Openssl_New_Ver}.tar.gz
-            Nginx_With_Openssl="--with-openssl=${cur_dir}/src/${Openssl_New_Ver} --with-openssl-opt='enable-weak-ssl-ciphers'"
+            Nginx_With_Openssl="--with-openssl=${cur_dir}/src/${Openssl_New_Ver}"
         fi
     fi
 }
@@ -153,7 +153,8 @@ Install_Nginx()
     mkdir -p ${Default_Website_Dir}
     chmod +w ${Default_Website_Dir}
     mkdir -p /home/wwwlogs
-    chmod 777 /home/wwwlogs
+    chmod 755 /home/wwwlogs
+    chown www:www /home/wwwlogs
 
     chown -R www:www ${Default_Website_Dir}
 
