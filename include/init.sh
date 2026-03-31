@@ -512,7 +512,6 @@ Check_Download()
         fi
     fi
     Download_Files ${Php_URL} ${Php_Ver}.tar.bz2
-    Download_Files ${PhpMyAdmin_URL} ${PhpMyAdmin_Ver}.tar.xz
     if [ "${Stack}" != "lnmp" ]; then
         Download_Files ${Apache_URL} ${Apache_Ver}.tar.bz2
         Download_Files ${APR_URL} ${APR_Ver}.tar.bz2

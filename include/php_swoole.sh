@@ -47,22 +47,9 @@ Install_PHP_Swoole()
         make && make install
         cd -
         rm -rf swoole-4.3.6
-    elif echo "${Cur_PHP_Version}" | grep -Eqi '^5.[3-6].'; then
-        Download_Files https://pecl.php.net/get/swoole-1.10.5.tgz swoole-1.10.5.tgz
-        Tar_Cd swoole-1.10.5.tgz swoole-1.10.5
-        ${PHP_Path}/bin/phpize
-        ./configure --with-php-config=${PHP_Path}/bin/php-config --enable-openssl
-        make && make install
-        cd -
-        rm -rf swoole-1.10.5
-    elif echo "${Cur_PHP_Version}" | grep -Eqi '^5.2.'; then
-        Download_Files https://pecl.php.net/get/swoole-1.6.10.tgz swoole-1.6.10.tgz
-        Tar_Cd swoole-1.6.10.tgz swoole-1.6.10
-        ${PHP_Path}/bin/phpize
-        ./configure --with-php-config=${PHP_Path}/bin/php-config --enable-openssl
-        make && make install
-        cd -
-        rm -rf swoole-1.6.10
+    else
+        Echo_Red "Unsupported PHP version for Swoole (need PHP 7.0 or newer)."
+        exit 1
     fi
 
     cat >${PHP_Path}/conf.d/009-swoole.ini<<EOF

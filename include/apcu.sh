@@ -31,8 +31,8 @@ Install_Apcu()
         Download_Files ${PHPNewApcu_URL} ${PHPNewApcu_Ver}.tgz
         Tar_Cd ${PHPNewApcu_Ver}.tgz ${PHPNewApcu_Ver}
     else
-        Download_Files ${PHPOldApcu_URL} ${PHPOldApcu_Ver}.tgz
-        Tar_Cd ${PHPOldApcu_Ver}.tgz ${PHPOldApcu_Ver}
+        Echo_Red "Unsupported PHP version for APCu (need PHP 7.0 or newer)."
+        exit 1
     fi
     ${PHP_Path}/bin/phpize
     ./configure --with-php-config=${PHP_Path}/bin/php-config
@@ -52,8 +52,8 @@ Install_Apcu()
         cd ..
         rm -rf ${cur_dir}/src/${PHPApcu_Bc_Ver}
         rm -rf ${cur_dir}/src/${PHPNewApcu_Ver}
-    else
-        rm -rf ${cur_dir}/src/${PHPOldApcu_Ver}
+    elif echo "${Cur_PHP_Version}" | grep -Eqi '^8.'; then
+        rm -rf ${cur_dir}/src/${PHPNewApcu_Ver}
     fi
 
     cat >${PHP_Path}/conf.d/009-apcu.ini<<EOF

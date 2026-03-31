@@ -39,13 +39,8 @@ Install_ImageMagic()
     if [ -s /usr/local/imagemagick/bin/convert ]; then
         echo "ImageMagick already exists."
     else
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^5.2.';then
-            Download_Files https://imagemagick.org/archive/releases/ImageMagick-6.9.9-27.tar.gz ImageMagick-6.9.9-27.tar.gz
-            Tar_Cd ImageMagick-6.9.9-27.tar.gz ImageMagick-6.9.9-27
-        else
-            Download_Files ${ImageMagick_URL} ${ImageMagick_Ver}.tar.xz
-            Tar_Cd ${ImageMagick_Ver}.tar.xz ${ImageMagick_Ver}
-        fi
+        Download_Files ${ImageMagick_URL} ${ImageMagick_Ver}.tar.xz
+        Tar_Cd ${ImageMagick_Ver}.tar.xz ${ImageMagick_Ver}
 
         ./configure --prefix=/usr/local/imagemagick
         Make_Install
@@ -53,13 +48,8 @@ Install_ImageMagic()
         rm -rf ${cur_dir}/src/${ImageMagick_Ver}
     fi
 
-    if echo "${Cur_PHP_Version}" | grep -Eqi '^5.2.';then
-        Download_Files https://pecl.php.net/get/imagick-3.1.2.tgz imagick-3.1.2.tgz
-        Tar_Cd imagick-3.1.2.tgz imagick-3.1.2
-    else
-        Download_Files ${Imagick_URL} ${Imagick_Ver}.tgz
-        Tar_Cd ${Imagick_Ver}.tgz ${Imagick_Ver}
-    fi
+    Download_Files ${Imagick_URL} ${Imagick_Ver}.tgz
+    Tar_Cd ${Imagick_Ver}.tgz ${Imagick_Ver}
     ${PHP_Path}/bin/phpize
     ./configure --with-php-config=${PHP_Path}/bin/php-config --with-imagick=/usr/local/imagemagick
     Make_Install

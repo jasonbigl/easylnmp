@@ -70,7 +70,7 @@ Uninstall_LNMP()
         rm -f /etc/init.d/${DB_Name}
     fi
 
-    for mphp in /usr/local/php[5,7].[0-9]; do
+    for mphp in /usr/local/php{7,8}.[0-9]; do
         mphp_ver=`echo $mphp|sed 's#/usr/local/php##'`
         if [ -s /etc/init.d/php-fpm${mphp_ver} ]; then
             /etc/init.d/php-fpm${mphp_ver} stop

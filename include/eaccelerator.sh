@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# eAccelerator is PHP 5.x only. PHP 5.x is no longer supported by this stack; this file is kept for uninstall/reference only.
 
 #Install eaccelerator 0.9.5.3
 Install_Old_eA()

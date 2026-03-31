@@ -26,19 +26,9 @@ Install_SourceGuardian()
         fi
         Download_Files https://www.sourceguardian.com/loaders/download/loaders.linux-${ARCH}.zip loaders.linux-${ARCH}.zip
     elif [ "${ARCH}" = "armhf" ]; then
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^5.2.*'; then
-            Echo_Red "Current PHP version does not support SourceGuardian!"
-            exit 1
-        else
-            Download_Files https://www.sourceguardian.com/loaders/download/loaders.linux-${ARCH}.zip loaders.linux-${ARCH}.zip
-        fi
+        Download_Files https://www.sourceguardian.com/loaders/download/loaders.linux-${ARCH}.zip loaders.linux-${ARCH}.zip
     elif [ "${ARCH}" = "aarch64" ]; then
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^5.*'; then
-            Echo_Red "Current PHP version does not support SourceGuardian!"
-            exit 1
-        else
-            Download_Files https://www.sourceguardian.com/loaders/download/loaders.linux-${ARCH}.zip loaders.linux-${ARCH}.zip
-        fi
+        Download_Files https://www.sourceguardian.com/loaders/download/loaders.linux-${ARCH}.zip loaders.linux-${ARCH}.zip
     else
         Echo_Red "Unsupported architecture!"
         exit 1

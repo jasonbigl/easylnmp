@@ -65,16 +65,8 @@ Install_Redis()
         rm -rf ${PHPRedis_Ver}
     fi
 
-    if echo "${Cur_PHP_Version}" | grep -Eqi '^5.2.';then
-        Download_Files http://pecl.php.net/get/redis-2.2.7.tgz redis-2.2.7.tgz
-        Tar_Cd redis-2.2.7.tgz redis-2.2.7
-    elif echo "${Cur_PHP_Version}" | grep -Eqi '^5.[3456].';then
-        Download_Files http://pecl.php.net/get/redis-4.3.0.tgz redis-4.3.0.tgz
-        Tar_Cd redis-4.3.0.tgz redis-4.3.0
-    else
-        Download_Files http://pecl.php.net/get/${PHPRedis_Ver}.tgz ${PHPRedis_Ver}.tgz
-        Tar_Cd ${PHPRedis_Ver}.tgz ${PHPRedis_Ver}
-    fi
+    Download_Files http://pecl.php.net/get/${PHPRedis_Ver}.tgz ${PHPRedis_Ver}.tgz
+    Tar_Cd ${PHPRedis_Ver}.tgz ${PHPRedis_Ver}
     ${PHP_Path}/bin/phpize
     ./configure --with-php-config=${PHP_Path}/bin/php-config
     Make_Install

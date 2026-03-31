@@ -11,11 +11,8 @@ Install_PHPMemcache()
         Download_Files ${PHP7Memcache_URL} ${PHP7Memcache_Ver}.tgz
         Tar_Cd ${PHP7Memcache_Ver}.tgz ${PHP7Memcache_Ver}
     else
-        if ! gcc -dumpversion|grep -q "^[34]."; then
-            export CFLAGS=" -fgnu89-inline"
-        fi
-        Download_Files ${PHPMemcache_URL} ${PHPMemcache_Ver}.tgz
-        Tar_Cd ${PHPMemcache_Ver}.tgz ${PHPMemcache_Ver}
+        Echo_Red "Unsupported PHP version for memcache (need PHP 7.0 or newer)."
+        exit 1
     fi
     ${PHP_Path}/bin/phpize
     ./configure --with-php-config=${PHP_Path}/bin/php-config
@@ -59,9 +56,8 @@ Install_PHPMemcached()
         Download_Files ${PHP7Memcached_URL} ${PHP7Memcached_Ver}.tgz
         Tar_Cd ${PHP7Memcached_Ver}.tgz ${PHP7Memcached_Ver}
     else
-        [[ -d "${PHPMemcached_Ver}" ]] && rm -rf "${PHPMemcached_Ver}"
-        Download_Files ${PHPMemcached_URL} ${PHPMemcached_Ver}.tgz
-        Tar_Cd ${PHPMemcached_Ver}.tgz ${PHPMemcached_Ver}
+        Echo_Red "Unsupported PHP version for memcached (need PHP 7.0 or newer)."
+        exit 1
     fi
     ${PHP_Path}/bin/phpize
     ./configure --with-php-config=${PHP_Path}/bin/php-config --enable-memcached --with-libmemcached-dir=/usr/local/libmemcached

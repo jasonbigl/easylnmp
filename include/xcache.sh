@@ -1,4 +1,5 @@
  #!/usr/bin/env bash
+# XCache is PHP 5.x only. PHP 5.x is no longer supported by this stack; this file is kept for uninstall/reference only.
 
 Install_XCache()
 {

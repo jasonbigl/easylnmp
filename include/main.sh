@@ -1,325 +1,104 @@
 #!/usr/bin/env bash
 
 DB_Info=('MySQL 5.1.73' 'MySQL 5.5.62' 'MySQL 5.6.51' 'MySQL 5.7.44' 'MySQL 8.0.37' 'MariaDB 5.5.68' 'MariaDB 10.4.33' 'MariaDB 10.5.24' 'MariaDB 10.6.17' 'MariaDB 10.11.7' 'MySQL 8.4.0')
-PHP_Info=('PHP 5.2.17' 'PHP 5.3.29' 'PHP 5.4.45' 'PHP 5.5.38' 'PHP 5.6.40' 'PHP 7.0.33' 'PHP 7.1.33' 'PHP 7.2.34' 'PHP 7.3.33' 'PHP 7.4.33' 'PHP 8.0.30' 'PHP 8.1.28' 'PHP 8.2.19' 'PHP 8.3.7' 'PHP 8.4.0')
+PHP_Info=('PHP 7.0.33' 'PHP 7.1.33' 'PHP 7.2.34' 'PHP 7.3.33' 'PHP 7.4.33' 'PHP 8.0.30' 'PHP 8.1.28' 'PHP 8.2.19' 'PHP 8.3.7' 'PHP 8.4.0')
 Apache_Info=('Apache 2.2.34' 'Apache 2.4.57')
+
+DB_Ask_Bin()
+{
+    if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" || "${DB_ARCH}" = "aarch64" ]]; then
+        if [ -z "${Bin}" ]; then
+            read -p "Using Generic Binaries [y/n] (default: n): " Bin
+        fi
+        case "${Bin}" in
+        [yY][eE][sS]|[yY])
+            echo "Will install using Generic Binaries."
+            Bin="y"
+            ;;
+        *)
+            echo "Will install from Source."
+            Bin="n"
+            ;;
+        esac
+    else
+        Bin="n"
+    fi
+}
 
 Database_Selection()
 {
-#which MySQL Version do you want to install?
     if [ -z "${DBSelect}" ]; then
-        DBSelect="2"
-        Echo_Yellow "You have 11 options for your DataBase install."
-        echo "1: Install ${DB_Info[0]}"
-        echo "2: Install ${DB_Info[1]} (Default)"
-        echo "3: Install ${DB_Info[2]}"
-        echo "4: Install ${DB_Info[3]}"
-        echo "5: Install ${DB_Info[4]}"
-        echo "6: Install ${DB_Info[5]}"
-        echo "7: Install ${DB_Info[6]}"
-        echo "8: Install ${DB_Info[7]}"
-        echo "9: Install ${DB_Info[8]}"
-        echo "10: Install ${DB_Info[9]}"
-        echo "11: Install ${DB_Info[10]}"
-        echo "0: DO NOT Install MySQL/MariaDB"
-        read -p "Enter your choice (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 or 0): " DBSelect
+        echo "==========================="
+        Echo_Yellow "Select database type:"
+        echo "1: MySQL"
+        echo "2: MariaDB"
+        echo "0: DO NOT install database"
+        read -p "Enter your choice (default: 1): " db_type
+        db_type="${db_type:-1}"
+
+        case "$db_type" in
+        1)
+            Echo_Yellow "Supported MySQL versions: 5.1, 5.5, 5.6, 5.7, 8.0, 8.4"
+            Echo_Yellow "Enter a minor version (e.g. 5.5) or a full version (e.g. 8.0.37)"
+            read -p "Enter MySQL version (default: 5.5): " db_input
+            db_input="${db_input:-5.5}"
+            db_major_minor=$(echo "$db_input" | grep -oE '^[0-9]+\.[0-9]+')
+            case "$db_major_minor" in
+                5.1)  DBSelect="1" ;;
+                5.5)  DBSelect="2" ;;
+                5.6)  DBSelect="3" ;;
+                5.7)  DBSelect="4" ;;
+                8.0)  DBSelect="5" ;;
+                8.4)  DBSelect="11" ;;
+                *)
+                    Echo_Red "Unsupported MySQL version: $db_input"
+                    Echo_Red "Supported versions: 5.1, 5.5, 5.6, 5.7, 8.0, 8.4"
+                    exit 1
+                    ;;
+            esac
+            if echo "$db_input" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+                Custom_Mysql_Ver="mysql-${db_input}"
+            fi
+            echo "You will install MySQL ${db_input}"
+            DB_Ask_Bin
+            ;;
+        2)
+            Echo_Yellow "Supported MariaDB versions: 5.5, 10.4, 10.5, 10.6, 10.11"
+            Echo_Yellow "Enter a minor version (e.g. 10.11) or a full version (e.g. 10.11.7)"
+            read -p "Enter MariaDB version (default: 10.4): " db_input
+            db_input="${db_input:-10.4}"
+            db_major_minor=$(echo "$db_input" | grep -oE '^[0-9]+\.[0-9]+')
+            case "$db_major_minor" in
+                5.5)   DBSelect="6" ;;
+                10.4)  DBSelect="7" ;;
+                10.5)  DBSelect="8" ;;
+                10.6)  DBSelect="9" ;;
+                10.11) DBSelect="10" ;;
+                *)
+                    Echo_Red "Unsupported MariaDB version: $db_input"
+                    Echo_Red "Supported versions: 5.5, 10.4, 10.5, 10.6, 10.11"
+                    exit 1
+                    ;;
+            esac
+            if echo "$db_input" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+                Custom_Mariadb_Ver="mariadb-${db_input}"
+            fi
+            echo "You will install MariaDB ${db_input}"
+            DB_Ask_Bin
+            ;;
+        0)
+            DBSelect="0"
+            echo "Do not install MySQL/MariaDB!"
+            ;;
+        *)
+            Echo_Red "Invalid choice: $db_type"
+            exit 1
+            ;;
+        esac
     fi
 
-    case "${DBSelect}" in
-    1)
-        echo "You will install ${DB_Info[0]}"
-        ;;
-    2)
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[1]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[1]} from Source."
-                Bin="n"
-                ;;
-            *)
-                Bin="n"
-                ;;
-            esac
-        else
-            echo "Default install ${DB_Info[1]} from Source."
-            Bin="n"
-        fi
-        ;;
-    3)
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[2]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[2]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[2]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[2]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    4)
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[3]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[3]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[3]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[3]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    5)
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" || "${DB_ARCH}" = "aarch64" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[4]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[4]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[4]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[4]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    6)
-        echo "You will install ${DB_Info[5]}"
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[5]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[5]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[5]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[5]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    7)
-        echo "You will install ${DB_Info[6]}"
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[6]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[6]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[6]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[6]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    8)
-        echo "You will install ${DB_Info[7]}"
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[7]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[7]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[7]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[7]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    9)
-        echo "You will install ${DB_Info[8]}"
-        if [[ "${DB_ARCH}" = "x86_64" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[8]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[8]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[8]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[8]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    10)
-        echo "You will install ${DB_Info[9]}"
-        if [[ "${DB_ARCH}" = "x86_64" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[9]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[9]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[9]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[9]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    11)
-        echo "You will install ${DB_Info[10]}"
-        if [[ "${DB_ARCH}" = "x86_64" || "${DB_ARCH}" = "i686" || "${DB_ARCH}" = "aarch64" ]]; then
-            if [ -z "${Bin}" ]; then
-                read -p "Using Generic Binaries [y/n]: " Bin
-            fi
-            case "${Bin}" in
-            [yY][eE][sS]|[yY])
-                echo "You will install ${DB_Info[10]} Using Generic Binaries."
-                Bin="y"
-                ;;
-            [nN][oO]|[nN])
-                echo "You will install ${DB_Info[10]} from Source."
-                Bin="n"
-                ;;
-            *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[10]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[10]} from Source."
-                    Bin="n"
-                fi
-                ;;
-            esac
-        else
-            Bin="n"
-        fi
-        ;;
-    0)
-        echo "Do not install MySQL/MariaDB!"
-        ;;
-    *)
-        echo "No input,You will install ${DB_Info[1]}"
-        DBSelect="2"
-    esac
-
     if [ "${Bin}" != "y" ] && [[ "${DBSelect}" =~ ^(5|[7-9]|1[0-1])$ ]] && [ "$(awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo)" -le 1024 ]; then
-        echo "Memory less than 1GB, can't install MySQL 8.0 or MairaDB 10.3+!"
+        echo "Memory less than 1GB, can't install MySQL 8.0 or MariaDB 10.3+!"
         exit 1
     fi
 
@@ -334,7 +113,6 @@ Database_Selection()
     fi
 
     if [[ "${DBSelect}" != "0" ]]; then
-        #set mysql root password
         if [ -z "${DB_Root_Password}" ]; then
             echo "==========================="
             Echo_Yellow "Please setup root password of MySQL."
@@ -346,9 +124,7 @@ Database_Selection()
         fi
         echo "MySQL root password has been set (hidden for security)."
 
-        #do you want to enable or disable the InnoDB Storage Engine?
         echo "==========================="
-
         if [ -z "${InstallInnodb}" ]; then
             InstallInnodb="y"
             Echo_Yellow "Do you want to enable or disable the InnoDB Storage Engine?"
@@ -373,84 +149,42 @@ Database_Selection()
 
 PHP_Selection()
 {
-#which PHP Version do you want to install?
     if [ -z "${PHPSelect}" ]; then
         echo "==========================="
+        Echo_Yellow "Supported PHP versions: 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4"
+        Echo_Yellow "Enter a minor version (e.g. 8.2) or a full version (e.g. 8.2.28)"
+        read -p "Enter PHP version (default: 8.2): " php_input
+        php_input="${php_input:-8.2}"
 
-        PHPSelect="13"
-        Echo_Yellow "You have 15 options for your PHP install."
-        echo "1: Install ${PHP_Info[0]}"
-        echo "2: Install ${PHP_Info[1]}"
-        echo "3: Install ${PHP_Info[2]}"
-        echo "4: Install ${PHP_Info[3]}"
-        echo "5: Install ${PHP_Info[4]}"
-        echo "6: Install ${PHP_Info[5]}"
-        echo "7: Install ${PHP_Info[6]}"
-        echo "8: Install ${PHP_Info[7]}"
-        echo "9: Install ${PHP_Info[8]}"
-        echo "10: Install ${PHP_Info[9]}"
-        echo "11: Install ${PHP_Info[10]}"
-        echo "12: Install ${PHP_Info[11]}"
-        echo "13: Install ${PHP_Info[12]} (Default)"
-        echo "14: Install ${PHP_Info[13]}"
-        echo "15: Install ${PHP_Info[14]}"
-        read -p "Enter your choice (1-15): " PHPSelect
-    fi
-
-    case "${PHPSelect}" in
-    1)
-        echo "You will install ${PHP_Info[0]}"
-        if [[ "${DBSelect}" = 0 ]]; then
-            echo "You didn't select MySQL/MariaDB can't select ${PHP_Info[0]}!"
+        php_major_minor=$(echo "$php_input" | grep -oE '^[0-9]+\.[0-9]+')
+        if [ -z "$php_major_minor" ]; then
+            Echo_Red "Invalid PHP version format: $php_input"
             exit 1
         fi
-        ;;
-    2)
-        echo "You will install ${PHP_Info[1]}"
-        ;;
-    3)
-        echo "You will install ${PHP_Info[2]}"
-        ;;
-    4)
-        echo "You will install ${PHP_Info[3]}"
-        ;;
-    5)
-        echo "You will install ${PHP_Info[4]}"
-        ;;
-    6)
-        echo "You will install ${PHP_Info[5]}"
-        ;;
-    7)
-        echo "You will install ${PHP_Info[6]}"
-        ;;
-    8)
-        echo "You will install ${PHP_Info[7]}"
-        ;;
-    9)
-        echo "You will install ${PHP_Info[8]}"
-        ;;
-    10)
-        echo "You will install ${PHP_Info[9]}"
-        ;;
-    11)
-        echo "You will install ${PHP_Info[10]}"
-        ;;
-    12)
-        echo "You will install ${PHP_Info[11]}"
-        ;;
-    13)
-        echo "You will install ${PHP_Info[12]}"
-        ;;
-    14)
-        echo "You will install ${PHP_Info[13]}"
-        ;;
-    15)
-        echo "You will install ${PHP_Info[14]}"
-        ;;
-    *)
-        echo "No input,You will install ${PHP_Info[12]}"
-        PHPSelect="13"
-    esac
+
+        case "$php_major_minor" in
+            7.0)  PHPSelect="7.0" ;;
+            7.1)  PHPSelect="7.1" ;;
+            7.2)  PHPSelect="7.2" ;;
+            7.3)  PHPSelect="7.3" ;;
+            7.4)  PHPSelect="7.4" ;;
+            8.0)  PHPSelect="8.0" ;;
+            8.1)  PHPSelect="8.1" ;;
+            8.2)  PHPSelect="8.2" ;;
+            8.3)  PHPSelect="8.3" ;;
+            8.4)  PHPSelect="8.4" ;;
+            *)
+                Echo_Red "Unsupported PHP version: $php_input"
+                Echo_Red "Supported versions: 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4"
+                exit 1
+                ;;
+        esac
+
+        if echo "$php_input" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            Custom_Php_Ver="php-${php_input}"
+        fi
+    fi
+    echo "You will install PHP ${PHPSelect}${Custom_Php_Ver:+ (${Custom_Php_Ver})}"
 }
 
 MemoryAllocator_Selection()
@@ -499,10 +233,25 @@ malloc-lib=/usr/lib/libtcmalloc.so'
     fi
 }
 
+Nginx_Selection()
+{
+    if [ -z "${Custom_Nginx_Ver}" ]; then
+        echo "==========================="
+        Echo_Yellow "Enter Nginx version (e.g. 1.26.0)"
+        read -p "Enter Nginx version (default: 1.26.0): " nginx_input
+        nginx_input="${nginx_input:-1.26.0}"
+        Custom_Nginx_Ver="nginx-${nginx_input}"
+    fi
+    echo "You will install ${Custom_Nginx_Ver}"
+}
+
 Dispaly_Selection()
 {
     Database_Selection
     PHP_Selection
+    if [ "${Stack}" != "lamp" ]; then
+        Nginx_Selection
+    fi
     MemoryAllocator_Selection
 }
 
@@ -540,11 +289,6 @@ Apache_Selection()
     else
         echo "No input,You will install ${Apache_Info[1]}"
         ApacheSelect="2"
-    fi
-    if [[ "${PHPSelect}" = "1" && "${ApacheSelect}" = "2" ]]; then
-        Echo_Red "PHP 5.2.17 is not compatible with Apache 2.4.*."
-        Echo_Red "Force use Apache 2.2.31"
-        ApacheSelect="1"
     fi
 }
 
@@ -958,15 +702,11 @@ Check_CMPT()
             exit 1
         fi
     fi
-    if [[ "${PHPSelect}" =~ ^1[0-5]$ ]]; then
+    local php_major="${PHPSelect%%.*}"
+    local php_minor="${PHPSelect#*.}"
+    if [ "${php_major}" = "7" ] && [ "${php_minor}" -ge 4 ] 2>/dev/null || [ "${php_major}" = "8" ]; then
         if echo "${Ubuntu_Version}" | grep -Eqi "^1[0-7]\." || echo "${Debian_Version}" | grep -Eqi "^[4-8]" || echo "${Raspbian_Version}" | grep -Eqi "^[4-8]" || echo "${CentOS_Version}" | grep -Eqi "^[4-6]"  || echo "${RHEL_Version}" | grep -Eqi "^[4-6]" || echo "${Fedora_Version}" | grep -Eqi "^2[0-3]"; then
-            Echo_Red "PHP 7.4 and PHP 8.* please use latest linux distributions!"
-            exit 1
-        fi
-    fi
-    if [[ "${PHPSelect}" = "1" ]]; then
-        if echo "${Ubuntu_Version}" | grep -Eqi "^19|2[0-7]\." || echo "${Debian_Version}" | grep -Eqi "^1[0-9]" || echo "${Raspbian_Version}" | grep -Eqi "^1[0-9]" || echo "${Deepin_Version}" | grep -Eqi "^2[0-9]" || echo "${UOS_Version}" | grep -Eqi "^2[0-9]" || echo "${Fedora_Version}" | grep -Eqi "^29|3[0-9]"; then
-            Echo_Red "PHP 5.2 is not supported on very new linux versions such as Ubuntu 19+, Debian 10, Deepin 20+, Fedora 29+ etc."
+            Echo_Red "PHP 7.4+ and PHP 8.x require recent linux distributions!"
             exit 1
         fi
     fi

@@ -25,7 +25,6 @@ Upgrade_Date=$(date +"%Y%m%d%H%M%S")
 . include/upgrade_mysql.sh
 . include/upgrade_mariadb.sh
 . include/upgrade_mysql2mariadb.sh
-. include/upgrade_phpmyadmin.sh
 . include/upgrade_mphp.sh
 
 Get_Dist_Name
@@ -40,8 +39,7 @@ Display_Upgrade_Menu()
     echo "4: Upgrade PHP for LNMP"
     echo "5: Upgrade PHP for LNMPA or LAMP"
     echo "6: Upgrade MySQL to MariaDB"
-    echo "7: Upgrade phpMyAdmin"
-    echo "8: Upgrade Multiple PHP"
+    echo "7: Upgrade Multiple PHP"
     echo "exit: Exit current script"
     echo "###################################################"
     read -p "Enter your choice (1, 2, 3, 4, 5, 6, 7 or exit): " action
@@ -80,17 +78,14 @@ fi
     6|[mM]2[mY])
         Upgrade_MySQL2MariaDB 2>&1 | tee /root/upgrade_mysql2mariadb${Upgrade_Date}.log
         ;;
-    7|[pP][hH][pP][mM][yY][aA][dD][mM][iI][nN])
-        Upgrade_phpMyAdmin 2>&1 | tee /root/upgrade_phpmyadmin${Upgrade_Date}.log
-        ;;
-    8|[mM][pP][hH][pP])
+    7|[mM][pP][hH][pP])
         Upgrade_Multiplephp 2>&1 | tee /root/upgrade_mphp${Upgrade_Date}.log
         ;;
     [eE][xX][iI][tT])
         exit 1
         ;;
     *)
-        echo "Usage: ./upgrade.sh {nginx|mysql|mariadb|m2m|php|phpa|phpmyadmin}"
+        echo "Usage: ./upgrade.sh {nginx|mysql|mariadb|m2m|php|phpa|mphp}"
         exit 1
     ;;
     esac

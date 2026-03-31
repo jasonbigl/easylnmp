@@ -49,9 +49,7 @@ Install_Apache_22()
         sed -i "s#/home/wwwroot/default#${Default_Website_Dir}#g" /usr/local/apache/conf/extra/httpd-vhosts.conf
     fi
 
-    if [[ "${PHPSelect}" =~ ^[6789]|1[0-3]$ ]]; then
-        sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
-    fi
+    sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
 
     \cp ${cur_dir}/init.d/init.d.httpd /etc/init.d/httpd
     \cp ${cur_dir}/init.d/httpd.service /etc/systemd/system/httpd.service
@@ -123,9 +121,7 @@ Install_Apache_24()
         sed -i "s#/home/wwwroot/default#${Default_Website_Dir}#g" /usr/local/apache/conf/extra/httpd-vhosts.conf
     fi
 
-    if [[ "${PHPSelect}" =~ ^[6789]|1[0-3]$ ]]; then
-        sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
-    fi
+    sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
 
     \cp ${cur_dir}/init.d/init.d.httpd /etc/init.d/httpd
     \cp ${cur_dir}/init.d/httpd.service /etc/systemd/system/httpd.service

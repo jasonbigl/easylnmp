@@ -123,37 +123,18 @@ Init_Install()
 
 Install_PHP()
 {
-    if [ "${PHPSelect}" = "1" ]; then
-        Install_PHP_52
-    elif [ "${PHPSelect}" = "2" ]; then
-        Install_PHP_53
-    elif [ "${PHPSelect}" = "3" ]; then
-        Install_PHP_54
-    elif [ "${PHPSelect}" = "4" ]; then
-        Install_PHP_55
-    elif [ "${PHPSelect}" = "5" ]; then
-        Install_PHP_56
-    elif [ "${PHPSelect}" = "6" ]; then
-        Install_PHP_7
-    elif [ "${PHPSelect}" = "7" ]; then
-        Install_PHP_71
-    elif [ "${PHPSelect}" = "8" ]; then
-        Install_PHP_72
-    elif [ "${PHPSelect}" = "9" ]; then
-        Install_PHP_73
-    elif [ "${PHPSelect}" = "10" ]; then
-        Install_PHP_74
-    elif [ "${PHPSelect}" = "11" ]; then
-        Install_PHP_80
-    elif [ "${PHPSelect}" = "12" ]; then
-        Install_PHP_81
-    elif [ "${PHPSelect}" = "13" ]; then
-        Install_PHP_82
-    elif [ "${PHPSelect}" = "14" ]; then
-        Install_PHP_83
-    elif [ "${PHPSelect}" = "15" ]; then
-        Install_PHP_84
-    fi
+    case "${PHPSelect}" in
+        7.0)  Install_PHP_7 ;;
+        7.1)  Install_PHP_71 ;;
+        7.2)  Install_PHP_72 ;;
+        7.3)  Install_PHP_73 ;;
+        7.4)  Install_PHP_74 ;;
+        8.0)  Install_PHP_80 ;;
+        8.1)  Install_PHP_81 ;;
+        8.2)  Install_PHP_82 ;;
+        8.3)  Install_PHP_83 ;;
+        8.4)  Install_PHP_84 ;;
+    esac
     Clean_PHP_Src_Dir
 }
 

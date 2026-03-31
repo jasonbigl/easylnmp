@@ -32,6 +32,7 @@ Install_Only_Nginx()
     echo "+-----------------------------------------------------------------------+"
     echo "|           For more information please visit https://lnmp.org          |"
     echo "+-----------------------------------------------------------------------+"
+    Nginx_Selection
     Press_Install
     Echo_Blue "Install dependent packages..."
     cd ${cur_dir}/src

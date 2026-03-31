@@ -25,6 +25,9 @@ LuaRestyCore='lua-resty-core-0.1.28'
 LuaRestyLrucache='lua-resty-lrucache-0.13'
 NgxDevelKit='ngx_devel_kit-0.3.3'
 Nginx_Ver='nginx-1.26.0'
+if [ -n "${Custom_Nginx_Ver}" ]; then
+    Nginx_Ver="${Custom_Nginx_Ver}"
+fi
 Caddy_Ver='caddy-2.7.1'
 NgxFancyIndex_Ver='ngx-fancyindex-0.5.2'
 if [ "${DBSelect}" = "1" ]; then
@@ -50,41 +53,26 @@ elif [ "${DBSelect}" = "10" ]; then
 elif [ "${DBSelect}" = "11" ]; then
     Mysql_Ver='mysql-8.4.4'
 fi
-if [ "${PHPSelect}" = "1" ]; then
-    Php_Ver='php-5.2.17'
-elif [ "${PHPSelect}" = "2" ]; then
-    Php_Ver='php-5.3.29'
-elif [ "${PHPSelect}" = "3" ]; then
-    Php_Ver='php-5.4.45'
-elif [ "${PHPSelect}" = "4" ]; then
-    Php_Ver='php-5.5.38'
-elif [ "${PHPSelect}" = "5" ]; then
-    Php_Ver='php-5.6.40'
-elif [ "${PHPSelect}" = "6" ]; then
-    Php_Ver='php-7.0.33'
-elif [ "${PHPSelect}" = "7" ]; then
-    Php_Ver='php-7.1.33'
-elif [ "${PHPSelect}" = "8" ]; then
-    Php_Ver='php-7.2.34'
-elif [ "${PHPSelect}" = "9" ]; then
-    Php_Ver='php-7.3.33'
-elif [ "${PHPSelect}" = "10" ]; then
-    Php_Ver='php-7.4.33'
-elif [ "${PHPSelect}" = "11" ]; then
-    Php_Ver='php-8.0.30'
-elif [ "${PHPSelect}" = "12" ]; then
-    Php_Ver='php-8.1.28'
-elif [ "${PHPSelect}" = "13" ]; then
-    Php_Ver='php-8.2.19'
-elif [ "${PHPSelect}" = "14" ]; then
-    Php_Ver='php-8.3.7'
+if [ -n "${Custom_Mysql_Ver}" ]; then
+    Mysql_Ver="${Custom_Mysql_Ver}"
 fi
-if [[ "${PHPSelect}" =~ ^[123]$ ]]; then
-    PhpMyAdmin_Ver='phpMyAdmin-4.0.10.20-all-languages'
-elif [[ "${PHPSelect}" =~ ^[456]$ ]]; then
-    PhpMyAdmin_Ver='phpMyAdmin-4.9.11-all-languages'
-else
-    PhpMyAdmin_Ver='phpMyAdmin-5.2.1-all-languages'
+if [ -n "${Custom_Mariadb_Ver}" ]; then
+    Mariadb_Ver="${Custom_Mariadb_Ver}"
+fi
+case "${PHPSelect}" in
+    7.0)  Php_Ver='php-7.0.33' ;;
+    7.1)  Php_Ver='php-7.1.33' ;;
+    7.2)  Php_Ver='php-7.2.34' ;;
+    7.3)  Php_Ver='php-7.3.33' ;;
+    7.4)  Php_Ver='php-7.4.33' ;;
+    8.0)  Php_Ver='php-8.0.30' ;;
+    8.1)  Php_Ver='php-8.1.28' ;;
+    8.2)  Php_Ver='php-8.2.19' ;;
+    8.3)  Php_Ver='php-8.3.7' ;;
+    8.4)  Php_Ver='php-8.4.0' ;;
+esac
+if [ -n "${Custom_Php_Ver}" ]; then
+    Php_Ver="${Custom_Php_Ver}"
 fi
 APR_Ver='apr-1.7.4'
 APR_Util_Ver='apr-util-1.6.3'
@@ -127,8 +115,6 @@ NgxFancyIndex_URL="https://github.com/aperezdc/ngx-fancyindex/releases/download/
 
 # Official download URLs - PHP
 Php_URL="https://www.php.net/distributions/${Php_Ver}.tar.bz2"
-PhpMyAdmin_Version=$(echo ${PhpMyAdmin_Ver} | sed 's/phpMyAdmin-//' | sed 's/-all-languages//')
-PhpMyAdmin_URL="https://files.phpmyadmin.net/phpMyAdmin/${PhpMyAdmin_Version}/${PhpMyAdmin_Ver}.tar.xz"
 
 # Official download URLs - Apache
 APR_URL="https://downloads.apache.org/apr/${APR_Ver}.tar.bz2"
@@ -146,6 +132,7 @@ fi
 Pureftpd_Ver='pure-ftpd-1.0.49'
 Pureftpd_URL="https://download.pureftpd.org/pub/pure-ftpd/releases/${Pureftpd_Ver}.tar.bz2"
 
+# Legacy XCache (PHP 5.x only; PHP 5.x is no longer supported)
 XCache_Ver='xcache-3.2.0'
 ImageMagick_Ver='ImageMagick-7.1.1-8'
 Imagick_Ver='imagick-3.7.0'

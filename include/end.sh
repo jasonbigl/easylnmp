@@ -62,9 +62,6 @@ Add_LNMP_Startup()
     fi
     StartUp php-fpm
     StartOrStop start php-fpm
-    if [ "${PHPSelect}" = "1" ]; then
-        sed -i 's#/usr/local/php/var/run/php-fpm.pid#/usr/local/php/logs/php-fpm.pid#' /bin/lnmp
-    fi
 }
 
 Add_LNMPA_Startup()
@@ -167,27 +164,17 @@ Check_PHP_Files()
 Check_Apache_Files()
 {
     isApache=""
-    if [[ "${PHPSelect}" =~ ^[6789]|10$ ]]; then
-        if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp7.so && -s /usr/local/apache/conf/httpd.conf ]]; then
-            Echo_Green "Apache: OK"
-            isApache="ok"
-        else
-            Echo_Red "Error: Apache install failed."
-        fi
-    elif [[ "${PHPSelect}" =~ ^1[1-3]$ ]]; then
-        if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp.so && -s /usr/local/apache/conf/httpd.conf ]]; then
-            Echo_Green "Apache: OK"
-            isApache="ok"
-        else
-            Echo_Red "Error: Apache install failed."
-        fi
+    local php_major="${PHPSelect%%.*}"
+    if [ "${php_major}" = "8" ]; then
+        local apache_php_module="libphp.so"
     else
-        if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp5.so && -s /usr/local/apache/conf/httpd.conf ]]; then
-            Echo_Green "Apache: OK"
-            isApache="ok"
-        else
-            Echo_Red "Error: Apache install failed."
-        fi
+        local apache_php_module="libphp7.so"
+    fi
+    if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/${apache_php_module} && -s /usr/local/apache/conf/httpd.conf ]]; then
+        Echo_Green "Apache: OK"
+        isApache="ok"
+    else
+        Echo_Red "Error: Apache install failed."
     fi
 }
 
