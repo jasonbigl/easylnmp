@@ -74,11 +74,9 @@ Restart_PHP()
 
 clear
 echo "+-----------------------------------------------------------------------+"
-echo "|            Addons script for LNMP V2.1, Written by Licess             |"
+echo "|            Addons script for LNMP V2.1                                |"
 echo "+-----------------------------------------------------------------------+"
 echo "|    A tool to Install cache,optimizer,accelerator...addons for LNMP    |"
-echo "+-----------------------------------------------------------------------+"
-echo "|           For more information please visit https://lnmp.org          |"
 echo "+-----------------------------------------------------------------------+"
 
 Select_PHP()

@@ -14,9 +14,6 @@
 # Description:       starts nginx using start-stop-daemon
 ### END INIT INFO
 
-# Author:   licess
-# website:  https://lnmp.org
-
 NGINX_BIN='/usr/local/nginx/sbin/nginx'
 CONFIG='/usr/local/nginx/conf/nginx.conf'
 PIDFILE='/usr/local/nginx/logs/nginx.pid'

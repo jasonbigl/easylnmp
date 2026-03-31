@@ -124,12 +124,10 @@ if [ "${isSSL}" == "ssl" ]; then
     echo "+--------------------------------------------------+"
     echo "|  A tool to upgrade lnmp 1.4 certbot to acme.sh   |"
     echo "+--------------------------------------------------+"
-    echo "|For more information please visit https://lnmp.org|"
-    echo "+--------------------------------------------------+"
     if [[ "${Get_Stack}" =~ "lnmp" ]]; then
         domain=""
         while :;do
-            Echo_Yellow "Please enter domain(example: www.lnmp.org): "
+            Echo_Yellow "Please enter domain(example: www.example.com): "
             read domain
             if [ "${domain}" != "" ]; then
                 if [ "${WebServer}" = "nginx" ]; then
@@ -162,7 +160,7 @@ if [ "${isSSL}" == "ssl" ]; then
             fi
         done
 
-        Echo_Yellow "Enter more domain name(example: lnmp.org *.lnmp.org): "
+        Echo_Yellow "Enter more domain name(example: example.com *.example.com): "
         read moredomain
         if [ "${moredomain}" != "" ]; then
             echo " domain list: ${moredomain}"
@@ -366,8 +364,6 @@ EOF
 else
     echo "+--------------------------------------------------+"
     echo "|  A tool to upgrade lnmp 1.4 to 2.2               |"
-    echo "+--------------------------------------------------+"
-    echo "|For more information please visit https://lnmp.org|"
     echo "+--------------------------------------------------+"
     if [[ "${Get_Stack}" =~ "lnmp" ]]; then
         Upgrade_Dependent

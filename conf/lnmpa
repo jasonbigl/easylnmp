@@ -12,9 +12,7 @@ else
 fi
 
 echo "+-------------------------------------------+"
-echo "|    Manager for LNMP, Written by Licess    |"
-echo "+-------------------------------------------+"
-echo "|              https://lnmp.org             |"
+echo "|          LNMPA Manager                    |"
 echo "+-------------------------------------------+"
 
 arg1=$1
@@ -226,7 +224,7 @@ Add_VHost()
 {
     domain=""
     while :;do
-        Echo_Yellow "Please enter domain(example: www.lnmp.org): "
+        Echo_Yellow "Please enter domain(example: www.example.com): "
         read domain
         if [ "${domain}" != "" ] && [[ "$domain" = "${domain%[[:space:]]*}" ]]; then
             if [[ -f "/usr/local/nginx/conf/vhost/${domain}.conf" || -f "/usr/local/apache/conf/vhost/${domain}.conf" ]]; then
@@ -241,7 +239,7 @@ Add_VHost()
         fi
     done
 
-    Echo_Yellow "Enter more domain name(example: lnmp.org sub.lnmp.org): "
+    Echo_Yellow "Enter more domain name(example: example.com sub.example.com): "
     read moredomain
     if [ "${moredomain}" != "" ]; then
         echo " domain list: ${moredomain}"
@@ -728,7 +726,7 @@ Add_SSL_Info_Menu()
 {
     domain=""
     while :;do
-        Echo_Yellow "Please enter domain(example: www.lnmp.org): "
+        Echo_Yellow "Please enter domain(example: www.example.com): "
         read domain
         if [ "${domain}" != "" ] && [[ "$domain" = "${domain%[[:space:]]*}" ]]; then
             echo " Your domain: ${domain}"
@@ -738,7 +736,7 @@ Add_SSL_Info_Menu()
         fi
     done
 
-    Echo_Yellow "Enter more domain name(example: lnmp.org sub.lnmp.org): "
+    Echo_Yellow "Enter more domain name(example: example.com sub.example.com): "
     read moredomain
     echo " domain list: ${domain} ${moredomain}"
 
@@ -837,7 +835,7 @@ Add_DNS_SSL_Only_Info_Menu()
 
     domain=""
     while :;do
-        Echo_Yellow "Please enter domain(example: lnmp.org): "
+        Echo_Yellow "Please enter domain(example: example.com): "
         read domain
         if [ "${domain}" != "" ] && [[ "$domain" = "${domain%[[:space:]]*}" ]]; then
             echo " Your domain: ${domain}"
@@ -847,7 +845,7 @@ Add_DNS_SSL_Only_Info_Menu()
         fi
     done
 
-    Echo_Yellow "Enter more domain name(example: *.lnmp.org): "
+    Echo_Yellow "Enter more domain name(example: *.example.com): "
     read moredomain
     if [ "${moredomain}" != "" ]; then
         echo " domain list: ${moredomain}"

@@ -124,12 +124,10 @@ if [ "${isSSL}" == "ssl" ]; then
     echo "+--------------------------------------------------+"
     echo "|  A tool to upgrade lnmp 1.4 certbot to acme.sh   |"
     echo "+--------------------------------------------------+"
-    echo "|For more information please visit https://lnmp.org|"
-    echo "+--------------------------------------------------+"
     if [[ "${Get_Stack}" =~ "lnmp" ]]; then
         domain=""
         while :;do
-            Echo_Yellow "Please enter domain(example: www.lnmp.org): "
+            Echo_Yellow "Please enter domain(example: www.example.com): "
             read domain
             if [ "${domain}" != "" ]; then
                 if [ ! -f "/usr/local/nginx/conf/vhost/${domain}.conf" ]; then
@@ -148,7 +146,7 @@ if [ "${isSSL}" == "ssl" ]; then
             fi
         done
 
-        Echo_Yellow "Enter more domain name(example: lnmp.org *.lnmp.org): "
+        Echo_Yellow "Enter more domain name(example: example.com *.example.com): "
         read moredomain
         if [ "${moredomain}" != "" ]; then
             echo " domain list: ${moredomain}"
@@ -245,7 +243,7 @@ if [ "${isSSL}" == "ssl" ]; then
     elif [ "${Get_Stack}" == "lamp" ]; then
         domain=""
         while :;do
-            Echo_Yellow "Please enter domain(example: www.lnmp.org): "
+            Echo_Yellow "Please enter domain(example: www.example.com): "
             read domain
             if [ "${domain}" != "" ]; then
                 if [ ! -f "/usr/local/apache/conf/vhost/${domain}.conf" ]; then
@@ -264,7 +262,7 @@ if [ "${isSSL}" == "ssl" ]; then
             fi
         done
 
-        Echo_Yellow "Enter more domain name(example: lnmp.org *.lnmp.org): "
+        Echo_Yellow "Enter more domain name(example: example.com *.example.com): "
         read moredomain
         if [ "${moredomain}" != "" ]; then
             echo " domain list: ${moredomain}"
@@ -367,8 +365,6 @@ if [ "${isSSL}" == "ssl" ]; then
 else
     echo "+--------------------------------------------------+"
     echo "|  A tool to upgrade lnmp manager from 1.x to 2.0  |"
-    echo "+--------------------------------------------------+"
-    echo "|For more information please visit https://lnmp.org|"
     echo "+--------------------------------------------------+"
     Press_Start
     if [ "${Get_Stack}" == "unknow" ]; then

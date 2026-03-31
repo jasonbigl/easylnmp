@@ -8,13 +8,11 @@ if [ $(id -u) != "0" ]; then
 fi
 
 echo "+-------------------------------------------------------------------+"
-echo "|   Remove open_basedir restrication for LNMP, Written by Licess    |"
+echo "|        Remove open_basedir restriction                            |"
 echo "+-------------------------------------------------------------------+"
-echo "|       A tool to remove open_basedir restrication for LNMP         |"
+echo "|       A tool to remove open_basedir restriction                   |"
 echo "+-------------------------------------------------------------------+"
-echo "|       For more information please visit https://lnmp.org          |"
-echo "+-------------------------------------------------------------------+"
-echo "|          Usage: ./remove_open_basedir_restrication.sh             |"
+echo "|          Usage: ./remove_open_basedir_restriction.sh            |"
 echo "+-------------------------------------------------------------------+"
 
 website_root=''

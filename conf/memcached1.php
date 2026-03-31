@@ -47,4 +47,3 @@ echo "<br />";
 //关闭连接
 $mem->close();
 ?>
-Memcached Test tools for <a href="https://lnmp.org" target="_blank">LNMP一键安装包</a> <a href="https://bbs.vpser.net/forum-25-1.html" target="_blank">LNMP支持论坛</a>

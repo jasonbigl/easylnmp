@@ -8,11 +8,9 @@ if [ $(id -u) != "0" ]; then
 fi
 clear
 echo "+----------------------------------------------------------+"
-echo "|          Pureftpd for LNMP,  Written by Licess           |"
+echo "|          Pureftpd for LNMP                               |"
 echo "+----------------------------------------------------------+"
-echo "|This script is a tool to install pureftpd for LNMP        |"
-echo "+----------------------------------------------------------+"
-echo "|For more information please visit https://lnmp.org        |"
+echo "|This script is a tool to install pureftpd                 |"
 echo "+----------------------------------------------------------+"
 echo "|Usage: ./pureftpd.sh                                      |"
 echo "+----------------------------------------------------------+"
@@ -111,8 +109,6 @@ Install_Pureftpd()
         Echo_Green "+----------------------------------------------------------------------+"
         Echo_Green "| Install Pure-FTPd completed,enjoy it!"
         Echo_Green "| =>use command: lnmp ftp {add|list|del|show} to manage FTP users."
-        Echo_Green "+----------------------------------------------------------------------+"
-        Echo_Green "| For more information please visit https://lnmp.org"
         Echo_Green "+----------------------------------------------------------------------+"
     else
         Echo_Red "Pureftpd install failed!"

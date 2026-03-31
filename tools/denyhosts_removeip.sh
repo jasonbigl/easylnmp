@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Author:licess
-# Website:https://www.vpser.net & https://lnmp.org
 
 HOST=$1
 if [ -z "${HOST}" ]; then

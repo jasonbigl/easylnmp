@@ -8,11 +8,9 @@ if [ $(id -u) != "0" ]; then
 fi
 
 echo "+-------------------------------------------------------------------+"
-echo "|   Reset MySQL/MariaDB root Password for LNMP, Written by Licess   |"
+echo "|       Reset MySQL/MariaDB root Password                             |"
 echo "+-------------------------------------------------------------------+"
-echo "|       A tool to reset MySQL/MariaDB root password for LNMP        |"
-echo "+-------------------------------------------------------------------+"
-echo "|       For more information please visit https://lnmp.org          |"
+echo "|       A tool to reset MySQL/MariaDB root password                 |"
 echo "+-------------------------------------------------------------------+"
 echo "|           Usage: ./reset_mysql_root_password.sh                   |"
 echo "+-------------------------------------------------------------------+"

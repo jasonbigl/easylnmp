@@ -19,9 +19,6 @@
 #                    banning potential attackers.
 ### END INIT INFO
 
-# Author:   licess
-# website:  https://lnmp.org
-
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 NAME=fail2ban
 

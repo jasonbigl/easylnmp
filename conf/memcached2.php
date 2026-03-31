@@ -44,4 +44,3 @@ echo "Get key2 value: ";
 print_r($val2);
 echo "<br />";
 ?>
-Memcached Test tools for <a href="https://lnmp.org" target="_blank">LNMP一键安装包</a> <a href="https://bbs.vpser.net/forum-25-1.html" target="_blank">LNMP支持论坛</a>

@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# author: licess
-# website: https://lnmp.org
 
 CheckURL="http://www.xxx.com"
 

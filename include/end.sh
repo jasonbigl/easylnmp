@@ -222,9 +222,7 @@ Print_Sucess_Info()
 {
     Clean_Web_Src_Dir
     echo "+------------------------------------------------------------------------+"
-    echo "|          LNMP V${LNMP_Ver} for ${DISTRO} Linux Server, Written by Licess          |"
-    echo "+------------------------------------------------------------------------+"
-    echo "|           For more information please visit https://lnmp.org           |"
+    echo "|          LNMP V${LNMP_Ver} for ${DISTRO} Linux Server                            |"
     echo "+------------------------------------------------------------------------+"
     echo "|    lnmp status manage: lnmp {start|stop|reload|restart|kill|status}    |"
     echo "+------------------------------------------------------------------------+"

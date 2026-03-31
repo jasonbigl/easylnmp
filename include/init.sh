@@ -129,7 +129,7 @@ Check_Hosts()
         echo "127.0.0.1 localhost.localdomain localhost" >> /etc/hosts
     fi
     if [ "${CheckMirror}" != "n" ]; then
-        pingresult=$(ping -c1 lnmp.org 2>&1)
+        pingresult=$(ping -c1 example.com 2>&1)
         echo "${pingresult}"
         if echo "${pingresult}" | grep -q "unknown host"; then
             echo "DNS...fail (using system default DNS, not modifying resolv.conf)"

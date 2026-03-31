@@ -22,11 +22,9 @@ Get_Dist_Name
 
 clear
 echo "+------------------------------------------------------------------------+"
-echo "|          LNMP V${LNMP_Ver} for ${DISTRO} Linux Server, Written by Licess          |"
+echo "|          LNMP V${LNMP_Ver} for ${DISTRO} Linux Server                            |"
 echo "+------------------------------------------------------------------------+"
 echo "|        A tool to auto-compile & install Nginx+MySQL+PHP on Linux       |"
-echo "+------------------------------------------------------------------------+"
-echo "|           For more information please visit https://lnmp.org           |"
 echo "+------------------------------------------------------------------------+"
 
 Sleep_Sec()

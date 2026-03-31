@@ -9,11 +9,9 @@ fi
 
 clear
 echo "+-------------------------------------------------------------------+"
-echo "|     Remove PHP disable functions for LNMP, Written by Licess      |"
+echo "|          Remove PHP disable functions                             |"
 echo "+-------------------------------------------------------------------+"
-echo "|         A tool to remove PHP disable_functions for LNMP           |"
-echo "+-------------------------------------------------------------------+"
-echo "|        For more information please visit https://lnmp.org         |"
+echo "|         A tool to remove PHP disable_functions                    |"
 echo "+-------------------------------------------------------------------+"
 echo "|             Usage: ./remove_disable_function.sh                   |"
 echo "+-------------------------------------------------------------------+"

@@ -26,11 +26,9 @@ Install_Only_Nginx()
 {
     clear
     echo "+-----------------------------------------------------------------------+"
-    echo "|              Install Nginx for LNMP, Written by Licess                |"
+    echo "|                     Install Nginx                                     |"
     echo "+-----------------------------------------------------------------------+"
     echo "|                     A tool to only install Nginx.                     |"
-    echo "+-----------------------------------------------------------------------+"
-    echo "|           For more information please visit https://lnmp.org          |"
     echo "+-----------------------------------------------------------------------+"
     Nginx_Selection
     Press_Install
@@ -291,11 +289,9 @@ Install_Only_Database()
 {
     clear
     echo "+-----------------------------------------------------------------------+"
-    echo "|      Install MySQL/MariaDB database for LNMP, Written by Licess       |"
+    echo "|           Install MySQL/MariaDB database                               |"
     echo "+-----------------------------------------------------------------------+"
-    echo "|               A tool to install MySQL/MariaDB for LNMP                |"
-    echo "+-----------------------------------------------------------------------+"
-    echo "|           For more information please visit https://lnmp.org          |"
+    echo "|               A tool to install MySQL/MariaDB                         |"
     echo "+-----------------------------------------------------------------------+"
 
     Get_Dist_Name
@@ -319,11 +315,9 @@ Install_Only_PHP()
 {
     clear
     echo "+-----------------------------------------------------------------------+"
-    echo "|          Install PHP + PHP-FPM for LNMP, Written by Licess            |"
+    echo "|              Install PHP + PHP-FPM                                    |"
     echo "+-----------------------------------------------------------------------+"
     echo "|           A tool to only install PHP with PHP-FPM support.            |"
-    echo "+-----------------------------------------------------------------------+"
-    echo "|           For more information please visit https://lnmp.org          |"
     echo "+-----------------------------------------------------------------------+"
 
     if [ -s /usr/local/php/bin/php ]; then
@@ -402,11 +396,9 @@ Install_Only_PHP_CLI()
 {
     clear
     echo "+-----------------------------------------------------------------------+"
-    echo "|             Install PHP CLI Only for LNMP, Written by Licess          |"
+    echo "|                Install PHP CLI Only                                   |"
     echo "+-----------------------------------------------------------------------+"
     echo "|         A tool to only install PHP CLI (without PHP-FPM).             |"
-    echo "+-----------------------------------------------------------------------+"
-    echo "|           For more information please visit https://lnmp.org          |"
     echo "+-----------------------------------------------------------------------+"
 
     if [ -s /usr/local/php/bin/php ]; then

@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 
 #Funciont: Backup website and mysql database
-#Author: licess
-#Website: https://lnmp.org
 
 #IMPORTANT!!!Please Setting the following Values!
 
 Backup_Home="/home/backup/"
 MySQL_Dump="/usr/local/mysql/bin/mysqldump"
 ######~Set Directory you want to backup~######
-Backup_Dir=("/home/wwwroot/vpser.net" "/home/wwwroot/lnmp.org")
+Backup_Dir=("/home/wwwroot/example.com" "/home/wwwroot/example2.com")
 
 ######~Set MySQL Database you want to backup~######
-Backup_Database=("lnmp" "vpser")
+Backup_Database=("database1" "database2")
 
 ######~Set MySQL UserName and password~######
 MYSQL_UserName='root'
